@@ -11,6 +11,10 @@
 # production
 /build
 
+#electron
+/electron/out
+/electron/node_modules
+
 # misc
 .env
 .DS_Store

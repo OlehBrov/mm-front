@@ -1,0 +1,55 @@
+
+.sidebar{
+  padding-top: 20px;
+}
+.filter-item{
+  display: flex;
+}
+.filter-button-icon-wrapper {
+  width: 67px;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+
+.devider {
+  display: block;
+  width: 1px;
+  height: 58px;
+  background-color: #dedede;
+}
+
+.filter-radio {
+  //   position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.filter-label {
+  width: 289px;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 20px;
+  border-style: none;
+  box-shadow: 0px 2px 20px 4px rgba(0, 0, 0, 0.1);
+  color: #000;
+  text-align: start;
+  display: inline-flex;
+  fill: currentcolor;
+  font-family: "Fixel", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+
+  letter-spacing: 0.25px;
+  line-height: normal;
+  max-width: 100%;
+  overflow: visible;
+
+  position: relative;
+}
+.filter-radio:checked + .filter-label{
+color:red;
+}

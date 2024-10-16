@@ -1,15 +1,70 @@
+@import "./styles/header";
+@import "./styles/products";
+@import "./styles/categories";
+@import "./styles/footer";
+@import "./styles/searchlist";
+@import "./styles/idle";
+@import "./styles/track";
+
+@font-face {
+  font-family: "Fixel";
+  src: url("../public/fonts/FixelDisplay-Regular.woff2") format("woff2");
+  font-weight: 400;
+
+  font-style: normal;
+}
+@font-face {
+  font-family: "Fixel";
+  src: url("../public/fonts/FixelDisplay-Medium.woff2") format("woff2");
+  font-weight: 500;
+  /* Bold weight */
+  font-style: normal;
+  /* Normal style */
+}
+@font-face {
+  font-family: "Fixel";
+  src: url("../public/fonts/FixelDisplay-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  /* Bold weight */
+  font-style: normal;
+  /* Normal style */
+}
+@font-face {
+  font-family: "Fixel";
+  src: url("../public/fonts/FixelDisplay-Bold.woff2") format("woff2");
+  font-weight: 700;
+  /* Bold weight */
+  font-style: normal;
+  /* Normal style */
+}
+
+@font-face {
+  font-family: "Fixel";
+  src: url("../public/fonts/FixelDisplay-Light.woff2") format("woff2");
+  font-weight: 300;
+  /* Light weight */
+  font-style: normal;
+  /* Normal style */
+}
+
 * {
   box-sizing: border-box;
 }
-
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 html {
-  font-family: "Manrope", system-ui, sans-serif;
+  font-family: "Fixel", system-ui, sans-serif;
   scroll-behavior: smooth;
 }
 
 body {
-  // background-color: black;
+  background-color: #fff;
   margin: 0;
+  width: 1080px;
+  height: 1920px;
 }
 
 ul,
@@ -40,75 +95,34 @@ a {
 img {
   display: block;
   margin: 0;
-}
-header {
   width: 100%;
-  padding: 30px 0;
-  background-color: #3c404368;
+  height: 100%;
+  object-fit: cover;
 }
+
 .container {
+  position: relative;
   // padding-top: 50px;
   display: flex;
-  margin: 0 auto;
+  width: 100%;
 
   position: relative;
-  padding-left: 16px;
-  padding-right: 16px;
-
-  width: 100%;
-
-  @media screen and (min-width: 480px) {
-    width: 480px;
-  }
-
-  @media screen and (min-width: 768px) {
-    width: 768px;
-  }
-
-  @media screen and (min-width: 1280px) {
-    width: 1280px;
-  }
 }
 
-.header-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.header-heading {
-  text-transform: uppercase;
-  font-size: 48px;
-  font-weight: 900;
-}
 .cart-container,
 .products-container {
   flex-direction: column;
 }
 
-.cart-button {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 12px;
-  background-color: #fd6802;
-  color: #f6f9fe;
+.clicker {
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
+
 .cart-product-item-img {
   width: 300px;
-}
-.sidebar {
-  width: 20%;
-  height: auto;
-  background-color: #fd660296;
-  padding: 20px;
-}
-.products-grid {
-  width: 100%;
-  display: grid;
-  // grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  grid-template-rows: auto;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 .filter-list {
@@ -118,68 +132,6 @@ header {
 }
 
 /* CSS */
-.filter-button {
-  width: 100%;
-  align-items: center;
-  appearance: none;
-  background-color: #df5252;
-  border-radius: 24px;
-  border-style: none;
-  box-shadow: rgba(0, 0, 0, 0.2) 0 3px 5px -1px,
-    rgba(0, 0, 0, 0.14) 0 6px 10px 0, rgba(0, 0, 0, 0.12) 0 1px 18px 0;
-  box-sizing: border-box;
-  color: #3c4043;
-  cursor: pointer;
-  display: inline-flex;
-  fill: currentcolor;
-  font-family: "Google Sans", Roboto, Arial, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  height: 48px;
-  justify-content: center;
-  letter-spacing: 0.25px;
-  line-height: normal;
-  max-width: 100%;
-  overflow: visible;
-  padding: 2px 24px;
-  position: relative;
-  text-align: center;
-  text-transform: none;
-  transition: box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 15ms linear 30ms, transform 270ms cubic-bezier(0, 0, 0.2, 1) 0ms;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-
-  will-change: transform, opacity;
-  z-index: 0;
-}
-
-.filter-button:hover {
-  background: #f6f9fe;
-  color: #174ea6;
-}
-
-.filter-button:active {
-  box-shadow: 0 4px 4px 0 rgb(60 64 67 / 30%),
-    0 8px 12px 6px rgb(60 64 67 / 15%);
-  outline: none;
-}
-
-.filter-button:focus {
-  outline: none;
-  border: 2px solid #4285f4;
-}
-
-.product-image {
-  width: 100%;
-  object-fit: cover;
-}
-
-.product-card {
-  padding: 10px;
-  background-color: #878787;
-}
 
 //CART
 .cart-product-details {
@@ -213,4 +165,8 @@ header {
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(10px);
+}
+.qr-wrapper,
+.receipt-container {
+  height: 100%;
 }

@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { logOutStore, refreshAccessToken } from "../redux/features/authSlice";
 
-
 let navigate;
 export const setNavigate = (nav) => {
   navigate = nav;
@@ -101,7 +100,6 @@ const baseQuery = async (args, api, extraOptions) => {
   })(args, api, extraOptions);
 };
 
-
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   // Initial API call
   let result = await baseQuery(args, api, extraOptions);
@@ -110,7 +108,9 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   // Check if the access token has expired (e.g., 401 Unauthorized response)
   if (result.error && result.error.status === 401) {
     // Try to get the refresh token from Electron's store
-    const refreshToken = await window.electron.ipcRenderer.invoke("get-refresh-token");
+    const refreshToken = await window.electron.ipcRenderer.invoke(
+      "get-refresh-token"
+    );
     console.log("refreshToken from ipcRenderer:", refreshToken);
 
     if (refreshToken) {
@@ -157,7 +157,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   return result;
 };
 
-
 export const storeApi = createApi({
   reducerPath: "storeApi",
   baseQuery: baseQueryWithReauth,
@@ -180,10 +179,10 @@ export const storeApi = createApi({
       providesTags: ["Auth"],
     }),
     getAllProducts: build.query({
-      query: ({ page, filter }) => ({
+      query: ({ page, size, filter, subcategory }) => ({
         url: "/products",
         method: "GET",
-        params: { page, filter },
+        params: { page, size, filter, subcategory },
       }),
       providesTags: ["Products"],
     }),
@@ -193,7 +192,17 @@ export const storeApi = createApi({
         method: "POST",
         body: products,
       }),
-      invalidatesTags: ["Cart"],
+      invalidatesTags: ["Cart", "Products"],
+    }),
+    searchProducts: build.query({
+      query: ({ searchQuery }) => {
+        if (!searchQuery) return null;
+        return {
+          url: "/products/search",
+          method: "GET",
+          params: { searchQuery },
+        };
+      },
     }),
     cancelBuyProducts: build.mutation({
       query: (products) => ({
@@ -211,5 +220,6 @@ export const {
   useLogoutStoreQuery,
   useGetAllProductsQuery,
   useBuyProductsMutation,
+  useSearchProductsQuery,
   useCancelBuyProductsMutation,
 } = storeApi;

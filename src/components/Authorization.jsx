@@ -5,22 +5,13 @@ import { useLoginStoreMutation } from "../api/storeApi";
 import { logInStore } from "../redux/features/authSlice";
 import { RiseLoader } from "react-spinners";
 
-
 const { REACT_APP_STORE_LOGIN, REACT_APP_STORE_PASSWORD } = process.env;
 
 export const Authorization = () => {
   const [loginStore, { isSuccess, isError, error }] = useLoginStoreMutation();
   const dispatch = useDispatch();
-  useEffect(() => {
-    console.log('Authorization')
-    console.log("window.electron in React component: homedir", window.electron);
-  }, []);
-
-  // const [login, setLogin] = useState("");
-  // const [password, setPassword] = useState("");
   const navigate = useNavigate();
   useEffect(() => {
-
     authSubmit();
   }, []);
   // Handle form submission
@@ -34,21 +25,14 @@ export const Authorization = () => {
         password: REACT_APP_STORE_PASSWORD,
       }).unwrap();
 
-      // Clear form fields
-      // setLogin("");
-      // setPassword("");
-
-      // Dispatch login action
-      console.log("loginStore result", result);
-      // window.electron.store.set("token", result.token);
-      // window.electron.store.set("refreshToken", result.refreshToken);
-
       await dispatch(logInStore(result));
-
+      console.log("result", result);
       if (result) {
-        console.log('result', result)
-        await window.electron.ipcRenderer.invoke("set-token", result.token)
-        await window.electron.ipcRenderer.invoke("set-refresh-token", result.refreshToken)
+        await window.electron.ipcRenderer.invoke("set-token", result.token);
+        await window.electron.ipcRenderer.invoke(
+          "set-refresh-token",
+          result.refreshToken
+        );
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -58,7 +42,6 @@ export const Authorization = () => {
   // Navigate on successful login
   useEffect(() => {
     if (isSuccess) {
-      console.log("Navigation triggered due to successful login");
       navigate("/products");
     } else if (isError) {
       console.error("Login failed with error:", error);

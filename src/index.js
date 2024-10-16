@@ -11,6 +11,7 @@ import { Authorization } from "./components/Authorization";
 import { StoreRoutesController } from "./routes/routesControllers";
 import { PersistGate } from "redux-persist/integration/react";
 import { SuccessPurchasePage } from "./components/SuccessPurchasePage";
+import { SearchResultsPage } from "./components/SearchResultsPage";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -26,6 +27,14 @@ root.render(
                 element={
                   <StoreRoutesController>
                     <Products />
+                  </StoreRoutesController>
+                }
+              />
+              <Route
+                path="results"
+                element={
+                  <StoreRoutesController>
+                    <SearchResultsPage />
                   </StoreRoutesController>
                 }
               />
@@ -52,7 +61,6 @@ root.render(
     </Provider>
   </React.StrictMode>
 );
-
 
 // import React from "react";
 // import ReactDOM from "react-dom/client";

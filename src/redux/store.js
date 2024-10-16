@@ -4,6 +4,7 @@ import categoriesReducer from "./features/categorySlice";
 import filterReducer from "./features/filterSlice";
 import cartReducer from "./features/cartSlice";
 import productsReducer from "./features/productsSlice";
+import searchReducer from "./features/searchSlice"
 import { storeApi } from "../api/storeApi";
 import {
   persistStore,
@@ -33,6 +34,7 @@ export const store = configureStore({
     authLocal: persistedauthorizationReducer,
     [storeApi.reducerPath]: storeApi.reducer,
     products: productsReducer,
+    search: searchReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

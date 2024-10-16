@@ -24,9 +24,10 @@ export const Cart = () => {
   const totalItems = cartProducts.length;
   useEffect(() => {
     if (cartProducts) {
+      console.log("cartProducts", cartProducts);
       setTotalPrice(
         cartProducts?.reduce((acc, item) => {
-          return acc + item.Products.price * item.total;
+          return acc + item.product_price * item.inCartQuantity;
         }, 0)
       );
     }
@@ -40,8 +41,8 @@ export const Cart = () => {
   useEffect(() => {
     console.log("cancelData", cancelData);
     console.log("buyingData", buyingData);
-    buyingData.isSuccess && navigate("/success");
-    buyingData.isError && toast.error("Помилка оплати");
+    buyingData.isSuccess &&
+      navigate("/success", { state: { qrCode: buyingData.data.info.qr } });
   }, [buyingData, cancelData]);
 
   const handleBuy = async (prods) => {
@@ -53,15 +54,13 @@ export const Cart = () => {
     try {
       const result = await buyFunction(withDateProds).unwrap(); // Unwrap to handle success or error
       console.log("Purchase result:", result);
-      // Handle success
-      navigate("/success");
     } catch (error) {
       console.error("Purchase failed:", error);
       // Handle error based on the rejected reason
       if (error.data?.errorDescription) {
         toast.error(error.data.errorDescription);
       } else {
-        toast.error("Failed to process the purchase");
+        toast.error("Помилка оплати");
       }
     }
   };
@@ -88,49 +87,45 @@ export const Cart = () => {
         <>
           <ul className="cart-list">
             {cartProducts.map((el) => (
-              <li key={el.product_id}>
+              <li key={el.id}>
                 <div className="cart-product-item">
                   <img
                     className="cart-product-item-img"
-                    src={el.Products.image}
+                    src={el.product_image}
                     alt=""
                   />
                   <div className="cart-product-details">
                     <p className="cart-product-item-name">
-                      Name: {el.Products.product_name}
+                      Назва товару: {el.product_name}
                     </p>
                     <p className="cart-product-item-text">
-                      Quantity: {el.total}
+                      Кількість товару: {el.inCartQuantity}
                     </p>
                     <p className="cart-product-item-text">
-                      Price: {el.Products.price}
+                      Ціна товару: {el.product_price}
                     </p>
                   </div>
                   <div className="cart-product-controls">
                     <div className="counter-wrapper">
                       <button
                         type="button"
-                        onClick={() =>
-                          dispatch(decrementProductsCount(el.product_id))
-                        }
+                        onClick={() => dispatch(decrementProductsCount(el.id))}
                       >
-                        Less
+                        Прибрати
                       </button>
                       <span>{el.total}</span>
                       <button
                         type="button"
-                        onClick={() =>
-                          dispatch(incrementProductsCount(el.product_id))
+                        onClick={() => dispatch(incrementProductsCount(el.id))}
+                        disabled={
+                          el.inCartQuantity >= parseInt(el.product_left)
                         }
                       >
-                        More
+                        Додати
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => deleteProduct(el.product_id)}
-                    >
-                      Delete product
+                    <button type="button" onClick={() => deleteProduct(el.id)}>
+                      Видалити продукт
                     </button>
                   </div>
                 </div>

@@ -80,7 +80,7 @@ export const setNavigate = (nav) => {
 const baseQuery = async (args, api, extraOptions) => {
   // Get token from Electron's main process using ipcRenderer
   const token = await window.electron.ipcRenderer.invoke("get-token");
-  console.log("prepareHeaders token from ipcRenderer:", token);
+  // console.log("prepareHeaders token from ipcRenderer:", token);
 
   // Add token to headers if available
   const headers = args.headers || {};
@@ -103,7 +103,7 @@ const baseQuery = async (args, api, extraOptions) => {
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   // Initial API call
   let result = await baseQuery(args, api, extraOptions);
-  console.log("baseQueryWithReauth result:", result);
+  // console.log("baseQueryWithReauth result:", result);
 
   // Check if the access token has expired (e.g., 401 Unauthorized response)
   if (result.error && result.error.status === 401) {
@@ -111,7 +111,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     const refreshToken = await window.electron.ipcRenderer.invoke(
       "get-refresh-token"
     );
-    console.log("refreshToken from ipcRenderer:", refreshToken);
+    // console.log("refreshToken from ipcRenderer", refreshToken);
 
     if (refreshToken) {
       // Try to refresh the token
@@ -186,6 +186,28 @@ export const storeApi = createApi({
       }),
       providesTags: ["Products"],
     }),
+    getSingleProduct: build.query({
+      query: ({ barcode }) => ({
+        url: "/products/single",
+        method: "GET",
+        params: { barcode },
+      }),
+      providesTags: ["Products"],
+    }),
+    getProductById: build.query({
+      query: ({ comboId }) => ({
+        url: "/products/product",
+        method: "GET",
+        params: { comboId },
+      }),
+      providesTags: ["Products"],
+    }),
+    getStoreSaleProducts: build.query({
+      query: () => ({
+        url: "/config/store-sale",
+        method: "GET"
+      })
+    }),
     buyProducts: build.mutation({
       query: (products) => ({
         url: `cart/buy`,
@@ -222,4 +244,7 @@ export const {
   useBuyProductsMutation,
   useSearchProductsQuery,
   useCancelBuyProductsMutation,
+  useGetProductByIdQuery,
+  useGetSingleProductQuery,
+  useGetStoreSaleProductsQuery
 } = storeApi;

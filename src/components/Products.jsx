@@ -1,31 +1,36 @@
 import { useDispatch, useSelector } from "react-redux";
-import { selectFilter } from "../redux/selectors/selectors";
+import SimpleBar from 'simplebar-react';
+import 'simplebar-react/dist/simplebar.min.css';
+import {
+  selectFilter,
+  selectSubcategories,
+} from "../redux/selectors/selectors";
 import { useGetAllProductsQuery } from "../api/storeApi";
-import { addToCart } from "../redux/features/cartSlice";
+
 import { FilterBar } from "./FilterBar";
-import { Link, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { setCategories } from "../redux/features/categorySlice";
-import { RiseLoader } from "react-spinners";
-import Pagination from "rc-pagination";
+import { BounceLoader } from "react-spinners";
+
 import { setSearch } from "../redux/features/searchSlice";
 import { setFilter } from "../redux/features/filterSlice";
-import { ProductDetails } from "./ProductDetails";
-import { ButtonCartIcon } from "./icons/ButtonCartIcon";
+
 import Scrollbars from "react-custom-scrollbars-2";
-// import {useGetAllContactsQuery} from "../api/productsApi";
+
+
+import { ProductCard } from "./ProductCard";
+import { setSubcategories } from "../redux/features/subcategoriesSlice";
 
 export const Products = () => {
   const currentFilter = useSelector(selectFilter);
-  const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [isQtyModifierOpen, setIsQtyModifierOpen] = useState(false);
-  const [productQty, setProductQty] = useState(1);
-  const [selectedProduct, setSelectedProduct] = useState({});
+  const subcategories = useSelector(selectSubcategories);
   const [isSubcategoryVisible, setIsSubcategoryVisible] = useState(false);
-  const scrollbarsRef = useRef(null);
-
+  const [scrollHeight, setScrollHeight] = useState(1575);
+  const subcategoriesRef = useRef(null);
+  // const navigate = useNavigate();
+  // const location = useLocation();
+  const scrollRef = useRef()
   const { isLoading, isSuccess, isError, data, error } = useGetAllProductsQuery(
     {
       // page: page,
@@ -34,6 +39,29 @@ export const Products = () => {
       subcategory: currentFilter.subcategory,
     }
   );
+  // Transform the incoming array
+  const transformData = (data) => {
+    console.log("transformDatadata", data);
+    return data.reduce((acc, item) => {
+      const categoryRef = item.Subcategories.category_ref_1C;
+
+      // If this category_ref doesn't exist in the accumulator, add it
+      if (!acc[categoryRef]) {
+        acc[categoryRef] = [];
+      }
+
+      // Push the current subcategory into the array for this category_ref
+      acc[categoryRef].push({
+        product_subcategory: item.product_subcategory,
+        ...item.Subcategories,
+      });
+
+      return acc;
+    }, {});
+  };
+
+  // Example usage with your data
+
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(setSearch(""));
@@ -45,46 +73,36 @@ export const Products = () => {
       return;
     }
     if (isSuccess) {
-      console.log("isSuccess data", data);
-      // data &&
-      setTotalProducts(data.totalProducts);
-      // data?.products.length &&
+      console.log("data.categories", data.categories);
       data.categories.length && dispatch(setCategories(data.categories));
     }
   }, [data, isError, isSuccess]);
 
   useEffect(() => {
-    console.log("currentFilter.category", currentFilter.category);
+    if (isSuccess && currentFilter.category === 0) {
+      const transformedData = transformData(data.subcategories);
+      dispatch(setSubcategories(transformedData));
+    }
+  }, [currentFilter.category, isSuccess]);
+
+  useEffect(() => {
     if (currentFilter.category === 0) {
       setIsSubcategoryVisible(false);
-
-      console.log("setIsSubcategoryVisible(false)");
     } else {
       setIsSubcategoryVisible(true);
-
-      console.log("setIsSubcategoryVisible(false)");
     }
   }, [currentFilter.category]);
 
-  const buyButtonHandler = (productToBuy) => {
-    dispatch(addToCart(productToBuy));
-  };
+  useEffect(() => {
+    const subcategoriesHeight = subcategoriesRef.current?.offsetHeight || 0;
 
-  const paginationHandler = (current, pageSize) => {
-    setPage(current);
-    window.scrollTo(0, 0);
-  };
+    setScrollHeight(1575 - subcategoriesHeight);
+  }, [
+    isSubcategoryVisible,
+    subcategoriesRef.current?.offsetHeight,
+    currentFilter.category,
+  ]);
 
-  const productQtyHandler = (product) => {
-    setIsQtyModifierOpen(true);
-    setSelectedProduct(product);
-    console.log("productQtyHandler product", product);
-  };
-  const modifierHandler = (el) => {
-    dispatch(addToCart({ ...selectedProduct, inCartQuantity: productQty }));
-    setIsQtyModifierOpen(false);
-    setSelectedProduct({});
-  };
   const subcategoryFilterHandler = (subcategory) => {
     dispatch(
       setFilter({
@@ -94,104 +112,27 @@ export const Products = () => {
       })
     );
   };
+  useEffect(() => {
+    console.log("currentFilter", currentFilter);
+    console.log("subcategories", subcategories);
+  }, [currentFilter, subcategories])
 
-  const itemRender = (current, type, originalElement) => {
-    if (type === "prev") {
-      return (
-        <button className="custom-arrow prev-button">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="26"
-            height="20"
-            viewBox="0 0 26 20"
-            fill="none"
-          >
-            <path
-              d="M15.673 1.25171L24.4213 10"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M1.57874 10L24.4213 10"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M15.673 18.7483L24.4213 10"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      );
-    }
-    if (type === "next") {
-      return (
-        <button className="custom-arrow next-button">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="26"
-            height="20"
-            viewBox="0 0 26 20"
-            fill="none"
-          >
-            <path
-              d="M15.673 1.25171L24.4213 10"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M1.57874 10L24.4213 10"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M15.673 18.7483L24.4213 10"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      );
-    }
-    if (type === "page") {
-      return (
-        <button className={`custom-page ${page === current ? "active" : ""}`}>
-          {current}
-        </button>
-      );
-    }
-    return originalElement; // For jump-prev, jump-next, etc.
-  };
-  const handleProductClick = (e, el) => {
-    e.preventDefault();
-    // buyButtonHandler({ ...el, inCartQuantity: 1 })
-    dispatch(addToCart({ ...el, inCartQuantity: 1 }));
-  };
+
+  useEffect(() => {
+  
+  console.log('SimpleBar', SimpleBar); // <- the root element you applied SimpleBar on
+})
   return (
     <div className="products-container">
-      {isQtyModifierOpen && (
-        <ProductDetails
-          selectedProduct={selectedProduct}
-          productQty={productQty}
-          setProductQty={setProductQty}
-          modifierHandler={modifierHandler}
-          setIsQtyModifierOpen={setIsQtyModifierOpen}
-        />
+      <div className="circle-800 circle-635" />
+      {isLoading && (
+        <div className="loader-wrapper">
+          <BounceLoader size={350} color={"#FF6A14"} />
+          <div className="loader-text-wrap">
+            <h1 className="loader-text">Триває підключення до терміналу</h1>
+          </div>
+        </div>
       )}
-      {isLoading && <RiseLoader color="#36d7b7" loading size={30} />}
       {isSuccess && (
         <div className="main-wrapper">
           <div className="sidebar">
@@ -199,92 +140,98 @@ export const Products = () => {
           </div>
 
           <div className="main-content">
-            <div className="subcategories-grid">
-              {isSubcategoryVisible &&
-                data.subcategories.map((subcat) => {
-                  return (
-                    <button
-                      key={subcat.product_subcategory}
-                      className="outlined-btn"
-                      type="button"
-                      onClick={() => subcategoryFilterHandler(subcat)}
-                    >
-                      {subcat.Subcategories.subcategory_name}
-                    </button>
-                  );
-                })}
-            </div>
-            <Scrollbars
-             
-              renderTrackVertical={(props) => (
-                <div {...props} className="track-vertical" />
-              )}
-              renderThumbVertical={(props) => (
-                <div {...props} className="thumb-vertical" />
-              )}
-              style={{ width: 740, height: 1500, paddingTop: 20 }}
-              thumbSize={190}
+            {currentFilter.category !== 0 && (
+              <div className="subcategories-wrapper" ref={subcategoriesRef}>
+                <h2 className="subcategories-heading">
+                  Оберіть підкатегорію продукту
+                </h2>
+                <div className="subcategories-grid">
+                  <>
+                    <div className="subcategory-radio-wrapper">
+                      <input
+                        type="radio"
+                        name="product-subcategories"
+                        id="all-subcat-filter"
+                        className="subcat-filter-radio"
+                        value="0"
+                        onChange={() =>
+                          subcategoryFilterHandler({ product_subcategory: 0 })
+                        }
+                        checked={currentFilter.subcategory === 0}
+                      />
+                      <label
+                        htmlFor="all-subcat-filter"
+                        className="subcat-filter-label"
+                      >
+                        Всі продукти
+                      </label>
+                    </div>
+
+                    {subcategories[currentFilter.category].map((subcat, i) => {
+                      return (
+                        <div
+                          className="subcategory-radio-wrapper"
+                          key={subcat.product_subcategory}
+                        >
+                          <input
+                            type="radio"
+                            name="product-subcategories"
+                            id={subcat.subcategory_name}
+                            className="subcat-filter-radio"
+                            value={subcat.product_subcategory}
+                            onChange={() => subcategoryFilterHandler(subcat)}
+                            checked={
+                              currentFilter.subcategory ===
+                              subcat.product_subcategory
+                            }
+                          />
+                          <label
+                            htmlFor={subcat.subcategory_name}
+                            className="subcat-filter-label"
+                          >
+                            {subcat.subcategory_name}
+                          </label>
+                        </div>
+                        // <button
+                        //   key={subcat.product_subcategory}
+                        //   className="outlined-btn subcategories-button"
+                        //   type="button"
+                        //   onClick={() => subcategoryFilterHandler(subcat)}
+                        // >
+                        //   {subcat.subcategory_name}
+                        // </button>
+                      );
+                    })}
+                  </>
+                </div>
+              </div>
+            )}
+
+            <SimpleBar
+              
+              // renderTrackVertical={(props) => (
+              //   <div {...props} className="track-vertical" />
+              // )}
+              // renderThumbVertical={(props) => (
+              //   <div {...props} className="thumb-vertical" />
+              // )}
+              style={{ width: 700 }}
+              forceVisible="y"
+              scrollbarMinSize={200}
+              
+              autoHide={ false}
+              // thumbSize={190}
+              // autoHeight
+              // autoHeightMin={400}
+              // autoHeightMax={scrollHeight}
+              // universal={true}
             >
               <div className={`products-grid`}>
                 {data.products.map((el) => (
-                  <Link
-                    key={el.id}
-                    className={`product-card `}
-                    onClick={(e) =>
-                      // buyButtonHandler({ ...el, inCartQuantity: 1 })
-                      handleProductClick(e, el)
-                    }
-                  >
-                    <div className={`product-image-wrapper`}>
-                      <img
-                        className={`product-image`}
-                        src={el.product_image}
-                        alt=""
-                      />
-                    </div>
-                    <div className={`product-card-footer`}>
-                      <div className="product-card-text-wrapper">
-                        <p className="product-card-name">{el.product_name}</p>
-                        <p className="product-card-light-text">
-                          {el.product_price} грн.
-                        </p>
-                        {el.discount && (
-                          <p>Знижка {el.Products.discount * 100}%</p>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
+                  <ProductCard key={el.id} product={el} />
                 ))}
               </div>
-            </Scrollbars>
-            {/* <div className="pagination-wrapper">
-              <Pagination
-                current={page}
-                pageSize={pageSize}
-                total={totalProducts}
-                onChange={paginationHandler}
-                hideOnSinglePage={true}
-                showPrevNextJumpers={true}
-                itemRender={itemRender}
-                locale={{
-                  // Options
-                  items_per_page: "/ сторінці",
-                  jump_to: "Перейти",
-                  jump_to_confirm: "підтвердити",
-                  page: "",
-
-                  // Pagination
-                  prev_page: "Попередня сторінка",
-                  next_page: "Наступна сторінка",
-                  prev_5: "Попередні 5 сторінок",
-                  next_5: "Наступні 5 сторінок",
-                  prev_3: "Попередні 3 сторінки",
-                  next_3: "Наступні 3 сторінки",
-                  page_size: "Page Size",
-                }}
-                className="pagination"
-              />
-            </div> */}
+            </SimpleBar>
           </div>
         </div>
       )}

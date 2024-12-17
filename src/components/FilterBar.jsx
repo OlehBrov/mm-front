@@ -5,7 +5,7 @@ import { setFilter } from "../redux/features/filterSlice";
 
 export const FilterBar = () => {
   const categories = useSelector(selectCategories);
-  const filter = useSelector(selectFilter)
+  const filter = useSelector(selectFilter);
 
   const dispatch = useDispatch();
 
@@ -35,7 +35,7 @@ export const FilterBar = () => {
         <label htmlFor="all-filter" className="filter-label">
           <div className="filter-button-icon-wrapper">
             <img
-              src="/img/icons/home.svg"
+              src="img/icons/home.svg"
               alt=""
               className="filter-button-icon"
             />
@@ -66,35 +66,36 @@ export const FilterBar = () => {
           На головну
         </button> */}
       </li>
-      {categories.map((el) => (
-        <li key={el.categoryId} className="filter-item">
-          <input
-            type="radio"
-            name="product-categories"
-            id={el.categoryName}
-            className="filter-radio"
-            value={el.categoryId}
-            onChange={() =>
-              handleFilterClick({
-                name: el.categoryName,
-                category: el.categoryId,
-                subcategory: 0,
-                categoryName: el.categoryName,
-              })
-            }
-            checked={filter.category === el.categoryId}
-          />
-          <label htmlFor={el.categoryName} className="filter-label">
-            <div className="filter-button-icon-wrapper">
-              <img
-                src={el.categoryImage}
-                alt=""
-                className="filter-button-icon"
-              />
-            </div>
-            {el.categoryName}
-          </label>
-          {/* <button
+      {categories.map((el) => {
+        return (
+          <li key={el.categoryId} className="filter-item">
+            <input
+              type="radio"
+              name="product-categories"
+              id={el.categoryName}
+              className="filter-radio"
+              value={el.categoryId}
+              onChange={() =>
+                handleFilterClick({
+                  name: el.categoryName,
+                  category: el.categoryId,
+                  subcategory: 0,
+                  categoryName: el.categoryName,
+                })
+              }
+              checked={filter.category === el.categoryId}
+            />
+            <label htmlFor={el.categoryName} className="filter-label">
+              <div className="filter-button-icon-wrapper">
+                <img
+                  src={el.categoryImage}
+                  alt=""
+                  className="filter-button-icon"
+                />
+              </div>
+              {el.categoryName}
+            </label>
+            {/* <button
             className="filter-button"
             type="button"
             data-category={el.categoryName}
@@ -118,8 +119,9 @@ export const FilterBar = () => {
             <div className="devider" />
             {el.categoryName}
           </button> */}
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   );
 };

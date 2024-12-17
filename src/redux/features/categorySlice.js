@@ -7,12 +7,12 @@ export const categoriesSlice = createSlice({
     setCategories: (state, action) => {
       const categories = action.payload.map((item) => {
         return {
-          categoryId: item.Categories.id,
+          categoryId: item.Categories.cat_1C_id,
           categoryName: item.Categories.category_name,
           categoryImage: item.Categories.category_image
         };
       });
-
+console.log('categories', categories)
       return categories;
     },
   },

@@ -7,12 +7,13 @@ import isDev from 'electron-is-dev'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-console.log('__filename', __filename)
-console.log('__dirname', __dirname)
+// console.log('__filename', __filename)
+// console.log('__dirname', __dirname)
 function createWindow() {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1080,
+    height: 1920,
+    fullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -27,12 +28,13 @@ if (isDev) {
     win.webContents.openDevTools(); // Open DevTools to see the console
   } else {
     // For production, load the React build
-    win.loadFile(path.join(__dirname, '..', 'build', 'index.html')); // Adjust the path to your build folder
+  win.loadFile(path.join(__dirname, '..', 'build', 'index.html')); // Adjust the path to your build folder
+   win.webContents.openDevTools(); // Open DevTools to see the console
   }
 
-  console.log('isDev', isDev)
+  
   win.setMenuBarVisibility(false);
-  win.webContents.openDevTools();
+
 }
 
 app.whenReady().then(createWindow);

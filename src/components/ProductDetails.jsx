@@ -1,66 +1,173 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MinusIcon } from "./icons/MinusIcon";
 import { PlusIcon } from "./icons/PlusIcon";
-import { CloseIcon } from "./icons/CloseIcon";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addToCart,
+  decrementProductsCount,
+  incrementProductsCount,
+} from "../redux/features/cartSlice";
+import {
+  selectCartProducts,
+  selectCartTotalSum,
+  selectDetailedProduct,
+  selectMainSelected,
+  selectMaxAvailable,
+  selectTotalRemain,
+  selectTotalSelected,
+} from "../redux/selectors/selectors";
+import {
+  decrementMainSelected,
+  decrementTotalSelected,
+  incrementMainSelected,
+  incrementTotalSelected,
+  resetTotalSelected,
+  setMainSelected,
+  setMaxAvailable,
+  setTotalSelected,
+} from "../redux/features/selectedQuantitySlice";
+import { ComboProduct } from "./ComboProduct";
 
-export const ProductDetails = (props) => {
+export const ProductDetails = () => {
+  const detailedProduct = useSelector(selectDetailedProduct);
+  const cartTotal = useSelector(selectCartTotalSum);
+  const prodsInCart = useSelector(selectCartProducts);
+  const maxAvailable = useSelector(selectMaxAvailable);
+  const totalSelected = useSelector(selectTotalSelected);
+  const totalRemain = useSelector(selectTotalRemain);
+  const mainProductSelected = useSelector(selectMainSelected);
+
+  const [productQtyAvailable, setProductQtyAvailable] = useState(1);
+  const [productAvailable, setProductAvailable] = useState(true);
+
+  const [disableIncrease, setDisableIncrease] = useState(false);
+  const [disableDecrease, setDisableDecrease] = useState(true);
+  const [isCombo, setIsCombo] = useState(false);
+
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state } = location;
+  const { hasLowerPrice } = detailedProduct;
+  useEffect(() => {
+    if (detailedProduct.sale_id === 7) {
+      const childQuantity =
+        detailedProduct.ComboProducts_Products_combo_idToComboProducts
+          .Products_ComboProducts_child_product_idToProducts.product_left;
+      if (Number(childQuantity) === 0 || isNaN(Number(childQuantity))) {
+        return setIsCombo(false);
+      }
+      return setIsCombo(true);
+    }
+  }, [detailedProduct]);
+  // Setting max available products
+  useEffect(() => {
+    dispatch(setMaxAvailable(Number(detailedProduct.product_left)));
+    setDisableIncrease(totalSelected >= maxAvailable);
+    setDisableDecrease(totalSelected < 1);
+  }, [totalSelected, detailedProduct, totalRemain]);
+
+  useEffect(() => {
+    const inCartProduct = prodsInCart.find(
+      (prod) => prod.id === detailedProduct.id
+    );
+    if (inCartProduct) {
+      dispatch(setMainSelected(inCartProduct.inCartQuantity));
+      const updatedQtyAvailable =
+        Number(detailedProduct.product_left) - inCartProduct.inCartQuantity;
+
+      setProductQtyAvailable(updatedQtyAvailable);
+      setDisableIncrease(updatedQtyAvailable <= 0);
+    } else {
+      setProductQtyAvailable(Number(detailedProduct.product_left));
+    }
+
+    setProductAvailable(productQtyAvailable > 0);
+  }, [prodsInCart, detailedProduct]);
+
+  const handleProductIncrease = () => {
+    if (totalSelected < maxAvailable) {
+      dispatch(incrementMainSelected(1));
+    }
+  };
+
+  const handleProductDecrease = () => {
+    if (mainProductSelected >= 1) {
+      dispatch(decrementMainSelected(1));
+    }
+  };
+
+  const modifierHandler = () => {
+    dispatch(
+      addToCart({ ...detailedProduct, inCartQuantity: mainProductSelected })
+    );
+    dispatch(resetTotalSelected());
+    navigate(state.from.location);
+  };
+  const handleBackLink = (e) => {
+    e.preventDefault();
+    navigate(state.from.location);
+    dispatch(resetTotalSelected());
+  };
   return (
-    <div className="product-quntity-popup">
+    <div className="details-page-wrapper">
+      <div className="circle-800" />
+      <div className="circle-800 circle-635" />
+      <div className="circle-600" />
+      <div className="circle-600 circle-400" />
+      <Link to="#" className="filled-text-button" onClick={handleBackLink}>
+        Назад
+      </Link>
       <div className="details-card">
-        <button
-          className="details-close-button"
-          type="button"
-          onClick={() => props.setIsQtyModifierOpen(false)}
-        >
-          <CloseIcon />
-        </button>
         <div className="details-grid">
           <div className="details-image-wrapper">
-            <img src={props.selectedProduct.product_image} alt="" />
+            <img src={detailedProduct.product_image} alt="" />
           </div>
           <div className="details-custom">
-            <p className="details-product-name">
-              {props.selectedProduct.product_name}
-            </p>
-            <div className="details-custom-controls">
-              <p className="details-text details-price">
-                {props.selectedProduct.product_price} грн.
+            <div className="product-details-name-wrapper">
+              <p className="details-product-name">
+                {detailedProduct.product_name}
               </p>
+              <div className="details-product-prices-wrapper">
+                <p
+                  className={`details-text details-price ${
+                    hasLowerPrice && "crossed"
+                  }`}
+                >
+                  {detailedProduct.product_price} грн.
+                </p>
+                {hasLowerPrice && (
+                  <p className="details-text details-price">
+                    {detailedProduct.priceAfterDiscount} грн.
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="details-custom-controls">
               <div className="buttons-wrapper">
                 <button
                   className="custom-product-button decrease-button"
-                  disabled={props.productQty < 2}
-                  onClick={() =>
-                    props.setProductQty((prev) => {
-                      return prev - 1;
-                    })
-                  }
+                  disabled={disableDecrease}
+                  onClick={handleProductDecrease}
                 >
                   <MinusIcon />
                 </button>
-                <span className="custom-counter">{props.productQty}</span>
+                <span className="custom-counter">{mainProductSelected}</span>
                 <button
                   className="custom-product-button increase-button"
-                  onClick={() =>
-                    props.setProductQty((prev) => {
-                      return prev + 1;
-                    })
-                  }
+                  disabled={disableIncrease}
+                  onClick={handleProductIncrease}
                 >
                   <PlusIcon />
                 </button>
-              </div>{" "}
-              <p className="details-text details-cost">
-                {(
-                  props.productQty * props.selectedProduct.product_price
-                ).toFixed(2)}{" "}
-                грн.
-              </p>
-            </div>{" "}
+              </div>
+            </div>
             <button
               type="button"
-              className="filled-text-button"
-              onClick={props.modifierHandler}
+              className="filled-text-button wide-button"
+              onClick={modifierHandler}
+              disabled={ disableDecrease}
             >
               Додати в корзину
             </button>
@@ -72,15 +179,22 @@ export const ProductDetails = (props) => {
               </div>
               <div className="description-text-wrap">
                 <p className="details-text description-text">
-                  {props.selectedProduct.product_description
-                    ? props.selectedProduct.product_description
-                    : "Скоро тут буде розміщено опис товару"}
+                  {detailedProduct.product_description ||
+                    "Скоро тут буде розміщено опис товару"}
                 </p>
               </div>
             </div>
           </div>
         </div>
       </div>
+      {isCombo && (
+        <ComboProduct
+          parentProduct={detailedProduct}
+          productQtyAvailable={productQtyAvailable}
+          setProductQtyAvailable={setProductQtyAvailable}
+          state={state}
+        />
+      )}
     </div>
   );
 };

@@ -1,10 +1,22 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { selectCart } from "../redux/selectors/selectors";
+import { selectCartProducts } from "../redux/selectors/selectors";
 
 export const CartLink = () => {
-  const cartProducts = useSelector(selectCart);
+  const [totalProductsCount, setTotalProductsCount] = useState(0);
+  const cartProducts = useSelector(selectCartProducts);
+
+  useEffect(() => {
+    if (cartProducts.length > 0) {
+      // console.log('cartProducts', cartProducts)
+      const totalProducts = cartProducts.reduce((acc, product) => {
+        return acc + product.inCartQuantity;
+      }, 0);
+      setTotalProductsCount(totalProducts)
+    } else setTotalProductsCount(0)
+  }, [cartProducts]);
+
   return (
     <div className="cart-link-wrapper">
       <Link to={"/cart"} className="cart-button">
@@ -58,7 +70,7 @@ export const CartLink = () => {
             </defs>
           </svg>
         </div>
-        <span>{cartProducts.length}</span>
+        <span className="cart-link-counter">{totalProductsCount}</span>
       </Link>
     </div>
   );

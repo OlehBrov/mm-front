@@ -4,7 +4,13 @@ import categoriesReducer from "./features/categorySlice";
 import filterReducer from "./features/filterSlice";
 import cartReducer from "./features/cartSlice";
 import productsReducer from "./features/productsSlice";
-import searchReducer from "./features/searchSlice"
+import searchReducer from "./features/searchSlice";
+import detailedProductReducer from "./features/detailedProductSlice";
+import selectedQuantityReducer from "./features/selectedQuantitySlice";
+import subcategoriesReducer from "./features/subcategoriesSlice"
+import recieptReducer from './features/recieptSlice';
+import buyStatusReducer from './features/buyStatus';
+import terminalStateReducer from './features/terminalSlice'
 import { storeApi } from "../api/storeApi";
 import {
   persistStore,
@@ -35,6 +41,13 @@ export const store = configureStore({
     [storeApi.reducerPath]: storeApi.reducer,
     products: productsReducer,
     search: searchReducer,
+    detailedProduct: detailedProductReducer,
+    selectedQuantity: selectedQuantityReducer,
+    subcategories: subcategoriesReducer,
+    reciept: recieptReducer,
+    buyStatus: buyStatusReducer,
+    terminalState: terminalStateReducer
+
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

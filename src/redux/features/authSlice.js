@@ -9,6 +9,7 @@ const authorizationSlice = createSlice({
     token: "",
     refreshToken: "",
     role: "",
+   
   },
   reducers: {
     logInStore: (state, { payload }) => {
@@ -18,17 +19,17 @@ const authorizationSlice = createSlice({
       state.token = payload.token;
       state.refreshToken = payload.refreshToken;
       state.role = payload.role;
+     
     },
     logOutStore: (state) => {
       state.isLoggedIn = false;
       state.auth_id = "";
       state.token = "";
       state.role = "";
+      state.store_id = 0;
     },
     refreshAccessToken: (state, { payload }) => {
-      console.log("Before updating token:", state);
-      console.log("New token payload:", payload);
-
+    
       if (payload && payload.token) {
         state.token = payload.token;
       } else {

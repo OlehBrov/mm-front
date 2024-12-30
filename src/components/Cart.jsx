@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  selectAuthorization,
   selectBuyStatus,
   selectCart,
   selectCartProducts,
@@ -16,7 +17,7 @@ import {
   incrementProductsCount,
   removeFromCart,
 } from "../redux/features/cartSlice";
-import { RiseLoader } from "react-spinners";
+import { PulseLoader, RiseLoader } from "react-spinners";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import moment from "moment";
@@ -26,11 +27,13 @@ import { setBuyStatus } from "../redux/features/buyStatus";
 
 export const Cart = () => {
   const cart = useSelector(selectCart);
+
   const [cancelFunction, cancelData] = useCancelBuyProductsMutation();
   const buyStatus = useSelector(selectBuyStatus);
   const cartProducts = useSelector(selectCartProducts);
   const totalSum = useSelector(selectCartTotalSum);
   const [showPaymentWaiting, setShowPaymentWaiting] = useState(false);
+  const [showLoader, setShowLoader] = useState(false)
   // const [showPaymentError, setShowPaymentError] = useState(false);
 
   const dispatch = useDispatch();
@@ -38,8 +41,12 @@ export const Cart = () => {
   // console.log("cartProducts", cartProducts);
   useEffect(() => {
     dispatch(setBuyStatus(""));
+    setShowLoader(false)
   }, []);
-
+  useEffect(() => {
+    console.log('cancelData', cancelData)
+    if(cancelData.isSuccess) setShowLoader(false)
+}, [cancelData])
   useEffect(() => {
     if (buyStatus.status === "fetching" || buyStatus.status === "loading") {
       setShowPaymentWaiting(true);
@@ -52,6 +59,11 @@ export const Cart = () => {
     }
     if (buyStatus.status === "success") navigate("/success");
   }, [buyStatus]);
+
+  const cancelBuyButtonHandler = () => {
+    cancelFunction()
+    setShowLoader(true)
+  }
   useEffect(() => {
     console.log('cartProducts', cartProducts)
   }, [cartProducts])
@@ -67,8 +79,8 @@ export const Cart = () => {
               <div>
                 <img src="img/icons/mobile.png" alt="" />
               </div>
-              <button className="cancel-buy-button" onClick={cancelFunction}>
-                Відміна
+              <button className="cancel-buy-button" onClick={cancelBuyButtonHandler} disabled={showLoader}>
+               {showLoader ? <RiseLoader/> : "Відміна"}
               </button>
             </div>
           </div>
@@ -109,6 +121,7 @@ export const Cart = () => {
                     <CartProductItem
                       key={el.isComboParent ? "parent" + el.id : el.id}
                       product={el}
+                   
                     />
                   );
                 })}

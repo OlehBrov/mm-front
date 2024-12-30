@@ -234,6 +234,12 @@ export const storeApi = createApi({
       }),
       invalidatesTags: ["Cart"],
     }),
+    getMerchantData: build.query({
+      query: () => ({
+        url: "/config/merchant",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -246,5 +252,6 @@ export const {
   useCancelBuyProductsMutation,
   useGetProductByIdQuery,
   useGetSingleProductQuery,
-  useGetStoreSaleProductsQuery
+  useGetStoreSaleProductsQuery,
+  useGetMerchantDataQuery
 } = storeApi;

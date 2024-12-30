@@ -2,7 +2,7 @@ import moment from "moment";
 
 // Helper to determine if marker should be shown
 export const shouldShowMarker = (product) => {
-
+// console.log('shouldShowMarker product', product)
   const { sale_id } = product;
   if (sale_id === 1 || sale_id === 2) {
     const expDays = calculateDaysLeft(product);
@@ -10,6 +10,10 @@ export const shouldShowMarker = (product) => {
     return expDays < 4;
   }
   if (sale_id === 7) {
+
+    if (!product.ComboProducts_Products_combo_idToComboProducts) {
+       return false;
+    }
     const childQuantity =
       product.ComboProducts_Products_combo_idToComboProducts
         .Products_ComboProducts_child_product_idToProducts.product_left;

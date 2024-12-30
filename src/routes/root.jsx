@@ -16,6 +16,7 @@ import { io } from "socket.io-client";
 import {
   setNavigate,
   storeApi,
+  useGetMerchantDataQuery,
   useGetSingleProductQuery,
   useSearchProductsQuery,
 } from "../api/storeApi";
@@ -34,6 +35,7 @@ import {
 } from "../helper/salesDiscountCounter";
 import { NoProduct } from "../components/NoProduct";
 import { setTerminalState } from "../redux/features/terminalSlice";
+import { setMerchantsData } from "../redux/features/merchantsSlice";
 const auth_id = 998877;
 // console.log("Connecting with store_id:", auth_id);
 const events = [
@@ -105,10 +107,16 @@ export const Root = () => {
     }
   );
 
+  const merchantData = useGetMerchantDataQuery();
   useEffect(() => {
     setNavigate(navigate);
   }, [navigate]);
+  useEffect(() => {
 
+    if (merchantData.isSuccess) {
+      dispatch(setMerchantsData(merchantData.data))
+    }
+  }, [merchantData]);
   useEffect(() => {
     if (location.pathname === "/cart") {
       setPageHeading("Корзина");
@@ -119,34 +127,32 @@ export const Root = () => {
     }
   }, [currentFilter.category, location]);
 
-useEffect(() => {
-  const handleScreenStatus = () => {
-    console.log("screen-status received. Current isIdleOpen:", isIdleOpen);
+  useEffect(() => {
+    const handleScreenStatus = () => {
+      console.log("screen-status received. Current isIdleOpen:", isIdleOpen);
 
-    // Emit current idle status
-    socket.emit("idle-status", { isIdleOpen });
+      // Emit current idle status
+      socket.emit("idle-status", { isIdleOpen });
 
-    if (!isIdleOpen && !isIdleOpen) setIdleOpenChecking(true);
-  };
+      if (!isIdleOpen && !isIdleOpen) setIdleOpenChecking(true);
+    };
 
-  // Attach the listener
-  socket.on("screen-status", handleScreenStatus);
-  if (idleOpenChecking && isIdleOpen) {
-    socket.emit("idle-status", { isIdleOpen })
-    setIdleOpenChecking(false)
-}
-  // Cleanup to avoid duplicate listeners
-  return () => {
-    socket.off("screen-status", handleScreenStatus);
-  };
-}, [isIdleOpen]); // Add `isIdleOpen` as a dependency to ensure the correct value is emitted
-
+    // Attach the listener
+    socket.on("screen-status", handleScreenStatus);
+    if (idleOpenChecking && isIdleOpen) {
+      socket.emit("idle-status", { isIdleOpen });
+      setIdleOpenChecking(false);
+    }
+    // Cleanup to avoid duplicate listeners
+    return () => {
+      socket.off("screen-status", handleScreenStatus);
+    };
+  }, [isIdleOpen]); // Add `isIdleOpen` as a dependency to ensure the correct value is emitted
 
   // useEffect(() => {
   //   // Emit `idle-status` whenever `isIdleOpen` changes
   //   console.log("isIdleOpen state changed:", isIdleOpen);
   //   if (idleOpenChecking) socket.emit("idle-status", { isIdleOpen });
-
 
   //   if (isIdleOpen) setIdleOpenChecking(false);
   // }, [isIdleOpen, idleOpenChecking]);
@@ -158,9 +164,6 @@ useEffect(() => {
   //   socket.emit("idle-status", { isIdleOpen });
   //   if (!isIdleOpen) setIdleOpenChecking(true);
   // });
-
-
-
 
   // const handleKeyPress = (event) => {
   //   console.log('handleKeyPress event', event)
@@ -441,14 +444,11 @@ useEffect(() => {
       <div className="clicker">
         <header>
           <div className="header-wrapper">
-            <Link
-              to={"/"}
-              className={`logo ${isNotifyOpen || isIdleOpen ? "centered" : ""}`}
-            >
+            <Link to={"/"} className={`logo ${isIdleOpen ? "centered" : ""}`}>
               <span className="highlight-logo">NEXT</span>RETAIL
             </Link>
             {!isIdleOpen && <h1 className="page-heading">{pageHeading}</h1>}
-            {location.pathname === "/cart" && (
+            {!isNotifyOpen && location.pathname === "/cart" && (
               <Link
                 onClick={clearCartHandler}
                 className={`footer-cart-link on-header-cart-link footer-cancel-link ${

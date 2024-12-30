@@ -11,6 +11,7 @@ import subcategoriesReducer from "./features/subcategoriesSlice"
 import recieptReducer from './features/recieptSlice';
 import buyStatusReducer from './features/buyStatus';
 import terminalStateReducer from './features/terminalSlice'
+import merchantReducer from './features/merchantsSlice'
 import { storeApi } from "../api/storeApi";
 import {
   persistStore,
@@ -46,7 +47,8 @@ export const store = configureStore({
     subcategories: subcategoriesReducer,
     reciept: recieptReducer,
     buyStatus: buyStatusReducer,
-    terminalState: terminalStateReducer
+    terminalState: terminalStateReducer,
+    merchant: merchantReducer,
 
   },
   middleware: (getDefaultMiddleware) =>

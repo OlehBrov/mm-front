@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useLoginStoreMutation } from "../api/storeApi";
 import { logInStore } from "../redux/features/authSlice";
 import { RiseLoader } from "react-spinners";
+import { setStoreCartTaxConfig } from "../redux/features/cartSlice";
 
 const { REACT_APP_STORE_LOGIN, REACT_APP_STORE_PASSWORD } = process.env;
 
@@ -26,6 +27,7 @@ export const Authorization = () => {
       }).unwrap();
 
       await dispatch(logInStore(result));
+      await dispatch(setStoreCartTaxConfig(result.single_merchant, result.use_VAT_by_default));
       console.log("result", result);
       if (result) {
         await window.electron.ipcRenderer.invoke("set-token", result.token);

@@ -1,11 +1,13 @@
 import { useDispatch, useSelector } from "react-redux";
-import SimpleBar from 'simplebar-react';
-import 'simplebar-react/dist/simplebar.min.css';
+import SimpleBar from "simplebar-react";
+import "simplebar-react/dist/simplebar.min.css";
 import {
+  selectAuthorization,
   selectFilter,
+  selectMerchant,
   selectSubcategories,
 } from "../redux/selectors/selectors";
-import { useGetAllProductsQuery } from "../api/storeApi";
+import { storeApi, useGetAllProductsQuery } from "../api/storeApi";
 
 import { FilterBar } from "./FilterBar";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -18,30 +20,33 @@ import { setFilter } from "../redux/features/filterSlice";
 
 import Scrollbars from "react-custom-scrollbars-2";
 
-
 import { ProductCard } from "./ProductCard";
 import { setSubcategories } from "../redux/features/subcategoriesSlice";
 
 export const Products = () => {
   const currentFilter = useSelector(selectFilter);
   const subcategories = useSelector(selectSubcategories);
+  const merchantData = useSelector(selectMerchant);
   const [isSubcategoryVisible, setIsSubcategoryVisible] = useState(false);
   const [scrollHeight, setScrollHeight] = useState(1575);
   const subcategoriesRef = useRef(null);
   // const navigate = useNavigate();
   // const location = useLocation();
-  const scrollRef = useRef()
-  const { isLoading, isSuccess, isError, data, error } = useGetAllProductsQuery(
-    {
+  const scrollRef = useRef();
+  const { isLoading, isSuccess, isError, isFetching, data, error } =
+    useGetAllProductsQuery({
       // page: page,
       // size: pageSize,
       filter: currentFilter.category,
       subcategory: currentFilter.subcategory,
-    }
-  );
+    });
   // Transform the incoming array
+  useEffect(() => {
+    console.log("isFetching", isFetching);
+    console.log("isSuccess", isSuccess);
+  }, [isFetching, isSuccess]);
   const transformData = (data) => {
-    console.log("transformDatadata", data);
+    // console.log("transformDatadata", data);
     return data.reduce((acc, item) => {
       const categoryRef = item.Subcategories.category_ref_1C;
 
@@ -73,8 +78,13 @@ export const Products = () => {
       return;
     }
     if (isSuccess) {
-      console.log("data.categories", data.categories);
-      data.categories.length && dispatch(setCategories(data.categories));
+      // console.log("data.categories", data.categories);
+
+      const sortedCategories = [...data.categories].sort((a, b) => {
+        return a.Categories.category_priority - b.Categories.category_priority;
+      });
+      // console.log('sortedCategories', sortedCategories)
+      data.categories.length && dispatch(setCategories(sortedCategories));
     }
   }, [data, isError, isSuccess]);
 
@@ -112,16 +122,7 @@ export const Products = () => {
       })
     );
   };
-  useEffect(() => {
-    console.log("currentFilter", currentFilter);
-    console.log("subcategories", subcategories);
-  }, [currentFilter, subcategories])
 
-
-  useEffect(() => {
-  
-  console.log('SimpleBar', SimpleBar); // <- the root element you applied SimpleBar on
-})
   return (
     <div className="products-container">
       <div className="circle-800 circle-635" />
@@ -167,48 +168,48 @@ export const Products = () => {
                       </label>
                     </div>
 
-                    {subcategories[currentFilter.category].map((subcat, i) => {
-                      return (
-                        <div
-                          className="subcategory-radio-wrapper"
-                          key={subcat.product_subcategory}
-                        >
-                          <input
-                            type="radio"
-                            name="product-subcategories"
-                            id={subcat.subcategory_name}
-                            className="subcat-filter-radio"
-                            value={subcat.product_subcategory}
-                            onChange={() => subcategoryFilterHandler(subcat)}
-                            checked={
-                              currentFilter.subcategory ===
-                              subcat.product_subcategory
-                            }
-                          />
-                          <label
-                            htmlFor={subcat.subcategory_name}
-                            className="subcat-filter-label"
+                    {subcategories[currentFilter.category] &&
+                      subcategories[currentFilter.category].map((subcat, i) => {
+                        return (
+                          <div
+                            className="subcategory-radio-wrapper"
+                            key={subcat.product_subcategory}
                           >
-                            {subcat.subcategory_name}
-                          </label>
-                        </div>
-                        // <button
-                        //   key={subcat.product_subcategory}
-                        //   className="outlined-btn subcategories-button"
-                        //   type="button"
-                        //   onClick={() => subcategoryFilterHandler(subcat)}
-                        // >
-                        //   {subcat.subcategory_name}
-                        // </button>
-                      );
-                    })}
+                            <input
+                              type="radio"
+                              name="product-subcategories"
+                              id={subcat.subcategory_name}
+                              className="subcat-filter-radio"
+                              value={subcat.product_subcategory}
+                              onChange={() => subcategoryFilterHandler(subcat)}
+                              checked={
+                                currentFilter.subcategory ===
+                                subcat.product_subcategory
+                              }
+                            />
+                            <label
+                              htmlFor={subcat.subcategory_name}
+                              className="subcat-filter-label"
+                            >
+                              {subcat.subcategory_name}
+                            </label>
+                          </div>
+                          // <button
+                          //   key={subcat.product_subcategory}
+                          //   className="outlined-btn subcategories-button"
+                          //   type="button"
+                          //   onClick={() => subcategoryFilterHandler(subcat)}
+                          // >
+                          //   {subcat.subcategory_name}
+                          // </button>
+                        );
+                      })}
                   </>
                 </div>
               </div>
             )}
 
             <SimpleBar
-              
               // renderTrackVertical={(props) => (
               //   <div {...props} className="track-vertical" />
               // )}
@@ -218,8 +219,7 @@ export const Products = () => {
               style={{ width: 700 }}
               forceVisible="y"
               scrollbarMinSize={200}
-              
-              autoHide={ false}
+              autoHide={false}
               // thumbSize={190}
               // autoHeight
               // autoHeightMin={400}
@@ -228,7 +228,12 @@ export const Products = () => {
             >
               <div className={`products-grid`}>
                 {data.products.map((el) => (
-                  <ProductCard key={el.id} product={el} />
+                  <ProductCard
+                    key={el.id}
+                    product={el}
+                    useVATbyDefault={merchantData.useVATbyDefault}
+                    isSingleMerchant={merchantData.isSingleMerchant}
+                  />
                 ))}
               </div>
             </SimpleBar>

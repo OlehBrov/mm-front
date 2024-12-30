@@ -19,7 +19,7 @@ export const CartProductItem = ({ product }) => {
   );
   const [comboProduct, setComboProduct] = useState(null);
   const [comboPrice, setComboPrice] = useState(0);
-  console.log('CartProductItem product.hasowerPrice', product.hasLowerPrice)
+  // console.log('CartProductItem product.hasowerPrice', product.hasLowerPrice)
   useEffect(() => {
     setComboProduct(() => {
       return product?.productsChildProduct
@@ -55,9 +55,9 @@ export const CartProductItem = ({ product }) => {
     if (hasLowerPrice) {
       setCurrentProductPrice(lowPrice);
     }
-    console.log('product', product)
-    console.log('lowPrice', lowPrice)
-    console.log('hasLowerPrice', hasLowerPrice)
+    // console.log('product', product)
+    // console.log('lowPrice', lowPrice)
+    // console.log('hasLowerPrice', hasLowerPrice)
   }, [hasLowerPrice, lowPrice]);
 
   const comboProductIncrement = (id) => {

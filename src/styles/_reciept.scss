@@ -1,9 +1,11 @@
 .total-check-wrapper {
   position: absolute;
   background-color: #fff;
-  width: 640px;
+  width: 800px;
 }
-
+.check-wrapper{
+  display: flex;
+}
 .check {
   padding: 10px 50px;
   border-radius: 10px;

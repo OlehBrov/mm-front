@@ -42,12 +42,11 @@ export const IdleWindow = ({ isOpen, onClose }) => {
         </div>
         <div className="portal-content">
           {!data.products.length && (
-            <div className="no-sale-idle-text-wrapper">
-              <h2>Вітаємо у магазині самообслуговування</h2>
-              <h1>NEXTRETAIL</h1>
+            <div className="no-sale-idle-logo-wrapper">
+<img src="img/NEXT-RETAIL-LOGO.png" alt="" />
             </div>
           )}
-          {data.products.length && (
+          {data.products.length > 0 && (
             <>
               <div className="idle-sale-marker-wrapper">
                 <p className="idle-sale-marker-text">Акція дня</p>

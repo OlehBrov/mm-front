@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { MinusIcon } from "./icons/MinusIcon";
-import { PlusIcon } from "./icons/PlusIcon";
+import parse from "html-react-parser";
+
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -28,8 +28,10 @@ import {
   setTotalSelected,
 } from "../redux/features/selectedQuantitySlice";
 import { ComboProduct } from "./ComboProduct";
+import { MinusIcon } from "./icons/MinusIcon";
+import { PlusIcon } from "./icons/PlusIcon";
 
-export const ProductDetails = () => {
+export const ProductDetails = ({ taxData }) => {
   const detailedProduct = useSelector(selectDetailedProduct);
   const cartTotal = useSelector(selectCartTotalSum);
   const prodsInCart = useSelector(selectCartProducts);
@@ -49,7 +51,7 @@ export const ProductDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = location;
-  const { hasLowerPrice } = detailedProduct;
+  const { hasLowerPrice, merchant } = detailedProduct;
   useEffect(() => {
     if (detailedProduct.sale_id === 7) {
       const childQuantity =
@@ -63,6 +65,7 @@ export const ProductDetails = () => {
   }, [detailedProduct]);
   // Setting max available products
   useEffect(() => {
+
     dispatch(setMaxAvailable(Number(detailedProduct.product_left)));
     setDisableIncrease(totalSelected >= maxAvailable);
     setDisableDecrease(totalSelected < 1);
@@ -72,6 +75,7 @@ export const ProductDetails = () => {
     const inCartProduct = prodsInCart.find(
       (prod) => prod.id === detailedProduct.id
     );
+    console.log("inCartProduct", inCartProduct);
     if (inCartProduct) {
       dispatch(setMainSelected(inCartProduct.inCartQuantity));
       const updatedQtyAvailable =
@@ -99,9 +103,22 @@ export const ProductDetails = () => {
   };
 
   const modifierHandler = () => {
+    console.log("modifierHandler detailedProduct", detailedProduct);
+    const { taxData, ...rest } = detailedProduct;
+    console.log("rest", rest);
+
     dispatch(
-      addToCart({ ...detailedProduct, inCartQuantity: mainProductSelected })
+      addToCart({
+        product: {
+          ...rest,
+          inCartQuantity: mainProductSelected,
+        },
+        taxData,
+      })
     );
+    // dispatch(
+    //   addToCart({ ...detailedProduct, inCartQuantity: mainProductSelected })
+    // );
     dispatch(resetTotalSelected());
     navigate(state.from.location);
   };
@@ -167,7 +184,7 @@ export const ProductDetails = () => {
               type="button"
               className="filled-text-button wide-button"
               onClick={modifierHandler}
-              disabled={ disableDecrease}
+              disabled={disableDecrease}
             >
               Додати в корзину
             </button>
@@ -178,10 +195,13 @@ export const ProductDetails = () => {
                 <p className="details-text">Опис</p>
               </div>
               <div className="description-text-wrap">
-                <p className="details-text description-text">
-                  {detailedProduct.product_description ||
-                    "Скоро тут буде розміщено опис товару"}
-                </p>
+                {detailedProduct.product_description ? (
+                  parse(detailedProduct.product_description)
+                ) : (
+                  <p className="details-text description-text">
+                    Скоро тут буде розміщено опис товару
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -192,6 +212,7 @@ export const ProductDetails = () => {
           parentProduct={detailedProduct}
           productQtyAvailable={productQtyAvailable}
           setProductQtyAvailable={setProductQtyAvailable}
+          merchant={merchant}
           state={state}
         />
       )}

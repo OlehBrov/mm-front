@@ -20,7 +20,7 @@ export const SearchInput = () => {
     } else {
       setSkip(true);
       dispatch(clearSearchResults());
-      console.log("dispatch(clearSearchResults());");
+     
     }
   }, [searchQuery]);
   const searchData = useSearchProductsQuery(

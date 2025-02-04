@@ -62,7 +62,7 @@ export const SuccessPurchasePage = () => {
           Go to Home Page
         </Link> */}
       </div>
-      {showCheck && <Reciept />}
+      {showCheck && <Reciept fiscalResponse={recieptData.fiscalResponse} />}
     </div>
   );
 };

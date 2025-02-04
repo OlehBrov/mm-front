@@ -23,16 +23,17 @@ const DISCOUNT_SALES = [1, 2, 4];
 const QUANTITY_SALES = [7, 8];
 const MANUAL_SALES = [3, 6];
 
-export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant }) => {
+export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant, onIdle }) => {
   const [productQtyAvailable, setProductQtyAvailable] = useState(1);
   const [showMarker, setShowMarker] = useState(false);
   const [discountValue, setDiscountValue] = useState(0);
-  const [newPrice, setNewPrice] = useState(product.product_price);
+  const [newPrice, setNewPrice] = useState(null);
   const [priceDecrement, setPriceDecrement] = useState(0);
   const [hasLowerPrice, setHasLowerPrice] = useState(false);
   const [productAvailable, setProductAvailable] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [merchant, setMerchant] = useState(null);
+
 
   const cartTotal = useSelector(selectCartTotalSum);
 
@@ -80,27 +81,27 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant }) => {
       discount = calculateDiscount(product);
       setDiscountValue(discount); // Show discount percentage
     }
-
+    setDiscountValue(discount);
     if (discount > 0) {
       const calculatedNewPrice = calculateNewPrice(product, discount);
       setNewPrice(calculatedNewPrice);
       setPriceDecrement((regularPrice - calculatedNewPrice).toFixed(2));
       setHasLowerPrice(true);
+      setDiscountValue(discount);
     }
   }, [product]);
 
-  useEffect(() => { 
-    if(!isSingleMerchant && !useVATbyDefault) {
+  useEffect(() => {
+    if (!isSingleMerchant && !useVATbyDefault) {
       setMerchant("both");
     }
-    if(isSingleMerchant && !useVATbyDefault) {
+    if (isSingleMerchant && !useVATbyDefault) {
       setMerchant("nonVAT");
     }
     if (isSingleMerchant && useVATbyDefault) {
       setMerchant("VAT");
-     }
-
-  }, [useVATbyDefault, isSingleMerchant ]);
+    }
+  }, [useVATbyDefault, isSingleMerchant]);
 
   const handleProductClick = (e) => {
     e.preventDefault();
@@ -114,6 +115,7 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant }) => {
             priceAfterDiscount: newPrice,
             hasLowerPrice,
             merchant,
+            discountValue
           },
           taxData: {
             useVATbyDefault,
@@ -148,6 +150,12 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant }) => {
         priceDecrement,
         priceAfterDiscount: newPrice,
         hasLowerPrice,
+        merchant,
+        discountValue,
+        taxData: {
+            useVATbyDefault,
+            isSingleMerchant,
+          },
       })
     );
     navigate("/productDetails", { state: { from: { location } } });
@@ -212,13 +220,13 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant }) => {
             <p className="product-card-light-text">{newPrice} грн.</p>
           )}
         </div>
-        <button
+        {!onIdle &&  <button
           type="button"
           onClick={(e) => detailsClickHandler(e, product)}
           className="product-card-details-button"
         >
-          <DetailsIcon />
-        </button>
+        <DetailsIcon />
+        </button>}
       </div>
     </Link>
   );

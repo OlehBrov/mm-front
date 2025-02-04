@@ -7,6 +7,9 @@ const initialState = {
     status: "",
     useVATbyDefault: false,
     vatExciseMerchant: "",
+    noVATTaxGroup: 0,
+    VATTaxGroup: 0,
+    VATExciseTaxGroup: 0
   },
 };
 
@@ -15,7 +18,6 @@ const merchantsSlice = createSlice({
   initialState,
   reducers: {
     setMerchantsData: (state, action) => {
-
       return (state = action.payload);
     },
     clearMerchantsData: (state) => {

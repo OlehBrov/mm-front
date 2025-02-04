@@ -24,6 +24,7 @@ import moment from "moment";
 import { CartProductItem } from "./CartProductItem";
 import Scrollbars from "react-custom-scrollbars-2";
 import { setBuyStatus } from "../redux/features/buyStatus";
+import { socket } from "../routes/root";
 
 export const Cart = () => {
   const cart = useSelector(selectCart);
@@ -33,54 +34,115 @@ export const Cart = () => {
   const cartProducts = useSelector(selectCartProducts);
   const totalSum = useSelector(selectCartTotalSum);
   const [showPaymentWaiting, setShowPaymentWaiting] = useState(false);
-  const [showLoader, setShowLoader] = useState(false)
+  const [showLoader, setShowLoader] = useState(false);
+  const [showTwoPaysInfo, setShowTwoPaysInfo] = useState(false);
+  const [currentPaymentCount, setCurrentPaymentCount] = useState(1);
   // const [showPaymentError, setShowPaymentError] = useState(false);
+useEffect(() => {
+  socket.once("secondPayment", () => {
+    console.log("secondPayment");
+    setCurrentPaymentCount(2)
+  });
+
+  // Cleanup in case the component unmounts before the event triggers
+  return () => {
+    socket.off("secondPayment");
+    setCurrentPaymentCount(1)
+  };
+}, []);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   // console.log("cartProducts", cartProducts);
+
+  useEffect(() => {
+    console.log('cart', cart)
+    // if (
+    //   parseFloat(cart.taxes.noVATTotalSum) > 0 &&
+    //   parseFloat(cart.taxes.withVATTotalSum) > 0
+    // ) {
+    //   setShowTwoPaysInfo(true);
+    //   console.log(
+    //     "cart.taxes.noVATTotalSum ",
+    //     parseFloat(cart.taxes.noVATTotalSum)
+    //   );
+    //   console.log(
+    //     "cart.taxes.withVATTotalSum ",
+    //     parseFloat(cart.taxes.withVATTotalSum)
+    //   );
+    // }
+     
+  }, [cart]);
+
   useEffect(() => {
     dispatch(setBuyStatus(""));
-    setShowLoader(false)
+    setShowLoader(false);
   }, []);
   useEffect(() => {
-    console.log('cancelData', cancelData)
-    if(cancelData.isSuccess) setShowLoader(false)
-}, [cancelData])
+    
+    if (cancelData.isSuccess) setShowLoader(false);
+  }, [cancelData]);
   useEffect(() => {
+   
     if (buyStatus.status === "fetching" || buyStatus.status === "loading") {
       setShowPaymentWaiting(true);
+
       // setShowPaymentError(false);
     }
     if (buyStatus.status === "error") {
       setShowPaymentWaiting(false);
       // setShowPaymentError(true);
-      navigate("/buy-error")
+      navigate("/buy-error");
     }
     if (buyStatus.status === "success") navigate("/success");
   }, [buyStatus]);
 
   const cancelBuyButtonHandler = () => {
-    cancelFunction()
-    setShowLoader(true)
-  }
+    cancelFunction();
+    setShowLoader(true);
+  };
   useEffect(() => {
-    console.log('cartProducts', cartProducts)
-  }, [cartProducts])
+    console.log("cartProducts", cartProducts);
+  }, [cartProducts]);
   return (
     <div className="cart-container">
       {showPaymentWaiting && (
         <div className="payment-wait-container">
           <div className="empty-cart-notification-outer-wrapper">
             <div className="empty-cart-notification-wrapper">
-              <p className="notification-light-text">
-                Для оплати скористайтесь терміналом
-              </p>
+              {cart.separatePayment && (
+                <>
+                  <p className="notification-light-text">
+                    Буде проведено 2 оплати
+                  </p>
+
+                  {currentPaymentCount === 1 && (
+                    <p className="notification-light-text">
+                      Проведіть першу оплату в терміналі
+                    </p>
+                  )}
+
+                  {currentPaymentCount === 2 && (
+                    <p className="notification-light-text">
+                      Проведіть другу оплату в терміналі
+                    </p>
+                  )}
+                </>
+              )}
+              {!cart.separatePayment && (
+                <p className="notification-light-text">
+                  Для оплати скористайтесь терміналом
+                </p>
+              )}
               <div>
                 <img src="img/icons/mobile.png" alt="" />
               </div>
-              <button className="cancel-buy-button" onClick={cancelBuyButtonHandler} disabled={showLoader}>
-               {showLoader ? <RiseLoader/> : "Відміна"}
+              <button
+                className="cancel-buy-button"
+                onClick={cancelBuyButtonHandler}
+                disabled={showLoader}
+              >
+                {showLoader ? <RiseLoader /> : "Відміна"}
               </button>
             </div>
           </div>
@@ -121,7 +183,6 @@ export const Cart = () => {
                     <CartProductItem
                       key={el.isComboParent ? "parent" + el.id : el.id}
                       product={el}
-                   
                     />
                   );
                 })}

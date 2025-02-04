@@ -1,23 +1,21 @@
-
-
 .track-vertical {
-  width: 5px;
+  width: 15px;
   top: 0;
   right: 0;
   bottom: 0;
-//   transform: translateY(2.5%);
+  //   transform: translateY(2.5%);
   height: 100%;
-  background-color: #D9D9D9;
+  background-color: #d9d9d9;
   border-radius: 3px;
   transform: translateX(-20px);
 }
 .track-vertical .thumb-vertical {
-    width: 40px !important;
-    height: 190px !important;
-    flex-shrink: 0;
-    border-radius: 30px;
-    border: 2px solid #C4C4C4;
-position: relative;
-left: -18px;
-    background-color: #fff;
+  width: 40px !important;
+  height: 190px !important;
+  flex-shrink: 0;
+  border-radius: 30px;
+  border: 2px solid #c4c4c4;
+  position: relative;
+  left: -18px;
+  background-color: #fff;
 }

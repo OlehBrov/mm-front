@@ -1,9 +1,14 @@
-
-.sidebar{
+.sidebar {
   padding-top: 20px;
 }
-.filter-item{
+.filter-item {
   display: flex;
+  &:nth-child(1) {
+    margin-bottom: 80px;
+    & .filter-label {
+      padding: 30px 20px;
+    }
+  }
 }
 .filter-button-icon-wrapper {
   width: 67px;
@@ -32,16 +37,14 @@
   gap: 20px;
   padding: 20px;
   background-color: #fff;
-  border-radius: 20px;
+  border-radius: 0px 20px 20px 0px;
   border-style: none;
   box-shadow: 0px 2px 20px 4px rgba(0, 0, 0, 0.1);
-  color: #000;
+  color: var(--text-color-main);
   text-align: start;
   display: inline-flex;
   fill: currentcolor;
   font-family: "Fixel", sans-serif;
-  font-size: 20px;
-  font-weight: 700;
 
   letter-spacing: 0.25px;
   line-height: normal;
@@ -49,7 +52,30 @@
   overflow: visible;
 
   position: relative;
+  transition: all 300ms linear;
 }
-.filter-radio:checked + .filter-label{
-color:#FF6A14;
+
+.filter-radio:checked + .filter-label .filter-label-text {
+ 
+  font-weight: 900;
+  
+}
+.filter-radio:checked+.filter-label .filter-label-text::after{
+  opacity: 1;
+}
+.filter-label-text {
+  position: relative;
+  font-size: 24px;
+  font-weight: 500;
+}
+.filter-label-text::after{
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 0;
+  width: 40px;
+  height: 8px;
+  background-color: var(--color-yellow);
+  opacity: 0;
+  transition: opacity 300ms;
 }

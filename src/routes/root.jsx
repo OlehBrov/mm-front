@@ -36,6 +36,8 @@ import {
 import { NoProduct } from "../components/NoProduct";
 import { setTerminalState } from "../redux/features/terminalSlice";
 import { setMerchantsData } from "../redux/features/merchantsSlice";
+import { setPaymentCount } from "../redux/features/buyStatus.js";
+
 const auth_id = 998877;
 // console.log("Connecting with store_id:", auth_id);
 const events = [
@@ -52,7 +54,7 @@ const events = [
   "visibilitychange",
 ];
 
-const socket = io("ws://localhost:5005", {
+export const socket = io("ws://localhost:5005", {
   reconnectionDelayMax: 5000,
   auth: {
     auth_id,
@@ -72,6 +74,11 @@ socket.on("product-updated", () => {
   console.log("product-updated");
   store.dispatch(storeApi.util.invalidateTags(["Products"]));
 });
+
+socket.on("twoPurchases", () => {
+  console.log("twoPurchases");
+ 
+})
 
 export const Root = () => {
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
@@ -429,9 +436,7 @@ export const Root = () => {
     dispatch(clearCart());
   };
 
-  // useEffect(() => {
-  //   console.log('idleEvent', idleEvent)
-  // })
+
   return (
     <IdleTimerProvider
       timeout={idleTimeout}

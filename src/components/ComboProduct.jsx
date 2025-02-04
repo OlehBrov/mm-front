@@ -22,6 +22,7 @@ export const ComboProduct = ({
   parentProduct,
   productQtyAvailable,
   setProductQtyAvailable,
+  merchant,
   state,
 }) => {
   const totalSelected = useSelector(selectTotalSelected);
@@ -64,11 +65,12 @@ export const ComboProduct = ({
         parentProduct.product_price,
         parentProduct.Sales.sale_discount_1
       );
+      console.log('parentPriceData', parentPriceData)
       const childPriceData = comboPriceCounter(
         childProduct.childProduct.product_price,
         parentProduct.Sales.sale_discount_1
       );
-
+console.log('childPriceData', childPriceData)
       setParentPrice(parentPriceData);
       setChildPrice(childPriceData);
     }
@@ -96,12 +98,14 @@ export const ComboProduct = ({
   const comboPriceCounter = (price, discount) => {
     const intPrice = parseFloat(price);
     const intDiscount = parseFloat(discount);
-    const newPrice = intPrice - intPrice * intDiscount;
-    const priceDecrement = intPrice - newPrice;
+    const priceDecrement = parseFloat((intPrice * intDiscount).toFixed(2));
+     const newPrice = parseFloat((intPrice - priceDecrement).toFixed(2));
+
+
     return {
-      priceAfterDiscount: newPrice.toFixed(2),
-      priceDifference: (intPrice * intDiscount).toFixed(2),
-      priceDecrement: priceDecrement.toFixed(2),
+      priceAfterDiscount: newPrice,
+      // priceDifference: (intPrice * intDiscount).toFixed(2),
+      priceDecrement: priceDecrement,
     };
   };
 
@@ -115,6 +119,8 @@ export const ComboProduct = ({
           priceAfterDiscount: parentPrice.priceAfterDiscount,
           priceDecrement: parentPrice.priceDecrement,
           isComboParent: true,
+          hasLowerPrice: true,
+          merchant,
           productsChildProduct: {
             ...childProduct.childProduct,
             inCartQuantity: totalChildSelected,
@@ -128,6 +134,8 @@ export const ComboProduct = ({
           priceAfterDiscount: childPrice.priceAfterDiscount,
           priceDecrement: childPrice.priceDecrement,
           isComboChild: true,
+          hasLowerPrice: true,
+          merchant,
         },
       })
     );

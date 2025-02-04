@@ -17,51 +17,33 @@ const CHECK_FLOW = {
   16: "видача готівки при переказі",
 };
 
-export const Reciept = () => {
-  const taxData = useSelector(selectReciept);
+export const Reciept = ({fiscalResponse}) => {
+
   const [reciept, setReciept] = useState([]);
   const [qrCode, setQrCode] = useState([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   useEffect(() => {
-    console.log("taxData", taxData);
-    if (taxData) {
-      async function fetchData() {
-        // console.log("fetchdata", taxData);
+    for (const tax of Object.values(fiscalResponse)) {
 
-        for (const tax of Object.values(taxData)) {
-          console.log("taxData tax", tax);
-
-          if (tax === null) {
-            return;
-          }
-          // console.log("tax.info.doccode", tax.info.doccode);
-          const response = await fetch(
-            `http://localhost:6006/api/reciept-proxy/${tax.info.doccode}`
-          );
-          // console.log("await response", await response);
-          const { data } = await response.json();
-          console.log('tax.info.doccode', tax.info.doccode)
-          console.log("data", data);
-          setReciept((prev) => [...prev, data]);
-        }
+      if (tax === null) {
+        continue;
       }
-
-      fetchData();
+      setReciept((prev) => [...prev, tax]);
     }
-  }, [taxData]);
-
+  }, [fiscalResponse])
   useEffect(() => {
     if (reciept.length > 0) {
       for (const recieptSingle of reciept) {
-        console.log("recieptSingle", recieptSingle);
-        if (recieptSingle.data.items.length === 0) {
+        if (recieptSingle.fiscal.data.items.length === 0) {
           return;
         }
-        setQrCode([...recieptSingle.qr_content]);
+        setQrCode([...recieptSingle.fiscal.qr_content]);
       }
     }
   }, [reciept]);
+
   const closeRecieptHandler = () => {
     dispatch(clearBuyStatus());
     dispatch(clearReciept());
@@ -99,25 +81,26 @@ export const Reciept = () => {
         >
           <div className="check-wrapper">
             {reciept.map((recieptDoc, idx) => {
+              const {fiscal} = recieptDoc
               return (
                 <div className="check" key={idx}>
-                  {recieptDoc.is_test && (
+                  {fiscal.is_test && (
                     <div className="testCheckInfo">
                       <span>ТЕСТОВИЙ ЧЕК Не передається в податкову</span>
                     </div>
                   )}
 
                   <div className="check-header">
-                    <h4>{recieptDoc.company_name}</h4>
-                    <p>{recieptDoc.shop_name}</p>
-                    <p>{recieptDoc.shop_address}</p>
-                    <p>ІД {recieptDoc.company_edrpou}</p>
+                    <h4>{fiscal.company_name}</h4>
+                    <p>{fiscal.shop_name}</p>
+                    <p>{fiscal.shop_address}</p>
+                    <p>ІД {fiscal.company_edrpou}</p>
                   </div>
                   <div className="divider"></div>
 
                   <div className="topComment">Ваші покупки</div>
                   <div className="check-items-list">
-                    {recieptDoc.data.items.map((item) => {
+                    {fiscal.data.items.map((item) => {
                       return (
                         <div className="check-list-item" key={item.code1}>
                           <div className="product-line check-product-qty">
@@ -152,34 +135,34 @@ export const Reciept = () => {
                   <div className="divider"></div>
                   <div className="check-tech-data-wrapper">
                     <div className="check-tech-text-wrapper">
-                      <p>{CHECK_FLOW[recieptDoc.data.check_type]}</p>
+                      <p>{CHECK_FLOW[fiscal.data.check_type]}</p>
                     </div>
                     <div className="check-tech-text-wrapper">
-                      <p>{recieptDoc.data.pays[0].bank_id}</p>
+                      <p>{fiscal.data.pays[0].bank_id}</p>
                     </div>
                     <div className="check-tech-text-wrapper">
                       <p>Термінал</p>
-                      <p>{recieptDoc.data.pays[0].term_id}</p>
+                      <p>{fiscal.data.pays[0].term_id}</p>
                     </div>
                     <div className="check-tech-text-wrapper">
                       <p>Вид операції</p>
-                      <p>{recieptDoc.data.pays[0].operation}</p>
+                      <p>{fiscal.data.pays[0].operation}</p>
                     </div>
                     <div className="check-tech-text-wrapper">
                       <p>ЕПЗ</p>
-                      <p>{recieptDoc.data.pays[0].cardmask}</p>
+                      <p>{fiscal.data.pays[0].cardmask}</p>
                     </div>
                     <div className="check-tech-text-wrapper">
                       <p>Код авторизації</p>
-                      <p>{recieptDoc.data.pays[0].auth_code}</p>
+                      <p>{fiscal.data.pays[0].auth_code}</p>
                     </div>
                     <div className="check-tech-text-wrapper">
                       <p>Платіжна система</p>
-                      <p>{recieptDoc.data.pays[0].paysys}</p>
+                      <p>{fiscal.data.pays[0].paysys}</p>
                     </div>
                     <div className="check-tech-text-wrapper">
                       <p>RRN</p>
-                      <p>{recieptDoc.data.pays[0].rrn}</p>
+                      <p>{fiscal.data.pays[0].rrn}</p>
                     </div>
                     <div className="check-tech-text-wrapper">
                       <p>Касир</p>
@@ -189,42 +172,42 @@ export const Reciept = () => {
                     </div>
 
                     <div className="check-tech-text-wrapper">
-                      <p>{recieptDoc.data.pays[0].name}</p>
-                      <p>{recieptDoc.data.pays[0].pay_sum}</p>
+                      <p>{fiscal.data.pays[0].name}</p>
+                      <p>{fiscal.data.pays[0].pay_sum}</p>
                     </div>
                   </div>
                   <div className="divider"></div>
                   <div className="check-payment-data-wrapper">
                     <div className="check-payment-text-wrapper">
                       <p>Сума</p>
-                      <p>{recieptDoc.data.close.sum}</p>
+                      <p>{fiscal.data.close.sum}</p>
                     </div>
                     <div className="check-payment-text-wrapper">
                       <div className="price-tax-wrap">
-                        <p>{recieptDoc.data.taxes[0].tg_name}</p>
-                        <p>{recieptDoc.data.taxes[0].tg_print}</p>
+                        <p>{fiscal.data.taxes[0].tg_name}</p>
+                        <p>{fiscal.data.taxes[0].tg_print}</p>
                       </div>
 
-                      <p>{recieptDoc.data.taxes[0].tax_sum}</p>
+                      <p>{fiscal.data.taxes[0].tax_sum}</p>
                     </div>
                     <div className="check-payment-text-wrapper">
                       <p>До сплати</p>
-                      <p>{recieptDoc.data.close.to_pay}</p>
+                      <p>{fiscal.data.close.to_pay}</p>
                     </div>
                   </div>
                   <div className="divider"></div>
                   <div className="check-comments-wrapper">
                     <p>Коментар</p>
-                    <p>{recieptDoc.data.last_comment[0]}</p>
+                    <p>{fiscal.data.last_comment[0]}</p>
                   </div>
                   <div className="divider"></div>
                   <div className="check-fiscals-wrapper">
                     <div className="check-fiscals-text-wrapper">
                       <p>Фіск. номер чека:</p>
-                      <p>{recieptDoc.fiscal_number}</p>
+                      <p>{fiscal.fiscal_number}</p>
                     </div>
                     <div className="check-fiscals-text-wrapper">
-                      <p>{recieptDoc.data.date}</p>
+                      <p>{fiscal.data.date}</p>
                     </div>
                   </div>
                   <div className="divider"></div>
@@ -255,11 +238,11 @@ export const Reciept = () => {
                   <div className="check-footer">
                     <div className="text-wrapper footer-text-wrapper">
                       <p>Режим роботи</p>
-                      <p>{recieptDoc.is_offline ? "Офлайн" : "Онлайн"}</p>
+                      <p>{fiscal.is_offline ? "Офлайн" : "Онлайн"}</p>
                     </div>
                     <div className="text-wrapper footer-text-wrapper">
                       <p>ФН ПРРО</p>
-                      <p>{recieptDoc.rro_fiscal_number}</p>
+                      <p>{fiscal.rro_fiscal_number}</p>
                     </div>
                   </div>
                 </div>

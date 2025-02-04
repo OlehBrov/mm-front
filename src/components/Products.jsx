@@ -1,6 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import SimpleBar from "simplebar-react";
-import "simplebar-react/dist/simplebar.min.css";
+import { Scrollbars } from "react-custom-scrollbars-2";
 import {
   selectAuthorization,
   selectFilter,
@@ -18,10 +17,10 @@ import { BounceLoader } from "react-spinners";
 import { setSearch } from "../redux/features/searchSlice";
 import { setFilter } from "../redux/features/filterSlice";
 
-import Scrollbars from "react-custom-scrollbars-2";
-
 import { ProductCard } from "./ProductCard";
 import { setSubcategories } from "../redux/features/subcategoriesSlice";
+import { ThumbVertical } from "./ThumbVertical";
+import { TrackVertical } from "./TrackVertical";
 
 export const Products = () => {
   const currentFilter = useSelector(selectFilter);
@@ -122,7 +121,14 @@ export const Products = () => {
       })
     );
   };
-
+  useEffect(() => {
+    console.log("scrollRef.current", scrollRef.current);
+  }, [scrollRef.current]);
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.update(); // Refresh scrollbars on layout change
+    }
+  }, [scrollHeight]);
   return (
     <div className="products-container">
       <div className="circle-800 circle-635" />
@@ -209,22 +215,15 @@ export const Products = () => {
               </div>
             )}
 
-            <SimpleBar
-              // renderTrackVertical={(props) => (
-              //   <div {...props} className="track-vertical" />
-              // )}
-              // renderThumbVertical={(props) => (
-              //   <div {...props} className="thumb-vertical" />
-              // )}
-              style={{ width: 700 }}
-              forceVisible="y"
-              scrollbarMinSize={200}
-              autoHide={false}
-              // thumbSize={190}
-              // autoHeight
-              // autoHeightMin={400}
-              // autoHeightMax={scrollHeight}
-              // universal={true}
+            <Scrollbars
+              ref={scrollRef}
+              renderTrackVertical={TrackVertical}
+              renderThumbVertical={(props)=>ThumbVertical(props, scrollRef)}
+              style={{ width: 740, paddingTop: 20 }}
+              thumbSize={190}
+              autoHeight
+              autoHeightMin={400}
+              autoHeightMax={scrollHeight}
             >
               <div className={`products-grid`}>
                 {data.products.map((el) => (
@@ -236,7 +235,7 @@ export const Products = () => {
                   />
                 ))}
               </div>
-            </SimpleBar>
+            </Scrollbars>
           </div>
         </div>
       )}

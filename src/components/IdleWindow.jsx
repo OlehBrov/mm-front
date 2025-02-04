@@ -72,7 +72,7 @@ export const IdleWindow = ({ isOpen, onClose }) => {
                   {data.products.map((product) => (
                     <SwiperSlide key={product.id}>
                       {" "}
-                      <ProductCard product={product} />
+                      <ProductCard product={product} onIdle={true}/>
                     </SwiperSlide>
                   ))}
                 </Swiper>

@@ -2,6 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectCategories, selectFilter } from "../redux/selectors/selectors";
 import { setFilter } from "../redux/features/filterSlice";
+import { HomeIcon } from "./icons/HomeIcon";
 
 export const FilterBar = () => {
   const categories = useSelector(selectCategories);
@@ -33,14 +34,15 @@ export const FilterBar = () => {
           checked={filter.category === 0}
         />
         <label htmlFor="all-filter" className="filter-label">
-          <div className="filter-button-icon-wrapper">
-            <img
+          {/* <div className="filter-button-icon-wrapper"> */}
+            <HomeIcon />
+            {/* <img
               src="img/icons/home.svg"
               alt=""
               className="filter-button-icon"
-            />
-          </div>
-          На головну
+            /> */}
+          {/* </div> */}
+          <span className="filter-label-text">Головна</span>
         </label>
 
         {/* <button
@@ -93,7 +95,7 @@ export const FilterBar = () => {
                   className="filter-button-icon"
                 />
               </div>
-              {el.categoryName}
+              <span className="filter-label-text">{el.categoryName}</span>
             </label>
             {/* <button
             className="filter-button"

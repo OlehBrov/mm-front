@@ -26,7 +26,7 @@ const storeData = useSelector(selectAuthorization)
   const cart = useSelector(selectCart);
   const cartProducts = useSelector(selectCartProducts);
   const totalSum = useSelector(selectCartTotalSum);
-  const taxesValues = useSelector(selectTaxes);
+  // const taxesValues = useSelector(selectTaxes);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   useEffect(() => {
@@ -77,9 +77,9 @@ const storeData = useSelector(selectAuthorization)
         <p>
           Загальна вартість покупки: <span>{totalSum} грн.</span>
         </p>
-       {taxesValues.VATSum !== 0 && <p>
+       {/* {taxesValues.VATSum !== 0 && <p>
           в тому числі ПДВ: <span>{taxesValues.VATSum} грн.</span>
-        </p>}
+        </p>} */}
       </div>
       <div className="footer-counter-btn-wrap footer-counter-back-btn-wrap">
         <Link

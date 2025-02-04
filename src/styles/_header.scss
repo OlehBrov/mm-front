@@ -19,7 +19,7 @@ header {
   font-size: 32px;
   margin-right: 140px;
   text-align: left;
-  color: #000;
+  color: var(--text-color-main);
   &.centered{
     margin: 0 auto;
   }
@@ -31,7 +31,7 @@ header {
 
 .page-heading {
   font-size: 50px;
-  color: #000;
+  color: var(--text-color-main);
   font-weight: 700;
   line-height: 100%;
 }

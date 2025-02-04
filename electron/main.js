@@ -7,8 +7,7 @@ import isDev from 'electron-is-dev'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// console.log('__filename', __filename)
-// console.log('__dirname', __dirname)
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1080,
@@ -47,3 +46,4 @@ ipcMain.handle('set-refresh-token', (event, token) => setRefreshToken(token));
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+

@@ -43,7 +43,7 @@ export const CartProductItem = ({ product }) => {
   };
 
   const regularPrice = parseFloat(product.product_price);
-  const lowPrice = parseFloat(product.priceAfterDiscount);
+  const lowPrice = parseFloat(product.priceAfterDiscount) || null;
   // useEffect(() => {
   //   setHasLowerPrice(
   //     product.priceAfterDiscount !== 0 &&
@@ -55,9 +55,9 @@ export const CartProductItem = ({ product }) => {
     if (hasLowerPrice) {
       setCurrentProductPrice(lowPrice);
     }
-    // console.log('product', product)
-    // console.log('lowPrice', lowPrice)
-    // console.log('hasLowerPrice', hasLowerPrice)
+    console.log('product', product)
+    console.log('lowPrice', lowPrice)
+    console.log('hasLowerPrice', hasLowerPrice)
   }, [hasLowerPrice, lowPrice]);
 
   const comboProductIncrement = (id) => {

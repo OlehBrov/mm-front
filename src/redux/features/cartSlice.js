@@ -1,21 +1,24 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { collapseToast } from "react-toastify";
+import { calculateTaxes } from "../../helper/calculateTaxes";
 
 export const cartSlice = createSlice({
   name: "cart",
   initialState: {
     cartProducts: [],
-    taxes: {
-      withVATTotalSum: 0,
-      noVATTotalSum: 0,
-      VATSum: 0,
-      exciseSum: 0,
-    },
-
+    // taxes: {
+    //   withVATTotalSum: 0,
+    //   noVATTotalSum: 0,
+    //   VATSum: 0,
+    //   exciseSum: 0,
+    // },
+    noVATProducts: [],
+    VATProducts: [],
+    separatePayment: false,
     cartTotalSum: 0,
     storeTaxConfig: {
-      isSingleMerchant: false,
-      useVATbyDefault: false,
+      isSingleMerchant: null,
+      useVATbyDefault: null,
     },
   },
   reducers: {
@@ -24,6 +27,18 @@ export const cartSlice = createSlice({
         console.log("action.payload", action.payload);
 
         const { product, taxData } = action.payload;
+        console.log('state.cartProducts.length', state.cartProducts.length)
+        console.log('state.cartProducts.length > 1', state.cartProducts.length > 0)
+        console.log('state.separatePayment', state.separatePayment)
+        if (!state.separatePayment && state.cartProducts.length > 0) {
+          console.log('state.cartProducts[state.cartProducts.length - 1].is_VAT_Excise', state.cartProducts[state.cartProducts.length - 1].is_VAT_Excise)
+          console.log(' product.is_VAT_Excise',  product.is_VAT_Excise)
+          state.separatePayment =
+            state.cartProducts[state.cartProducts.length - 1].is_VAT_Excise !==
+            product.is_VAT_Excise;
+          console.log('state.separatePayment after change', state.separatePayment)
+        }
+
         const isAdded = state.cartProducts.find(
           (item) => item.id === product.id && item.isComboParent !== true
         );
@@ -31,158 +46,55 @@ export const cartSlice = createSlice({
         if (isAdded) {
           isAdded.inCartQuantity += product.inCartQuantity;
         } else {
-          state.cartProducts.push(product);
+          state.cartProducts = [...state.cartProducts, product];
         }
+
         state.storeTaxConfig = taxData;
+
         if (state.cartProducts.length > 0) {
           // Calculate cart total sum
           state.cartTotalSum = state.cartProducts
-            .reduce((total, product) => {
-              let price = product.priceAfterDiscount
-                ? product.priceAfterDiscount
-                : product.product_price;
+            .reduce((total, p) => {
+              console.log("product in state.cartProducts reduce", p);
+              let price = p.priceAfterDiscount
+                ? p.priceAfterDiscount
+                : p.product_price;
 
-              return total + price * product.inCartQuantity;
+              return total + price * p.inCartQuantity;
             }, 0)
             .toFixed(2);
-          let taxes = state.taxes;
+          console.log("state.storeTaxConfig", state.storeTaxConfig);
+          console.log("taxData", taxData);
+
+          // let taxes = state.taxes;
           //If all products with VAT (isSingleMerchant === true)
           // All to LTD, all with VAT
 
-          if (
-            state.storeTaxConfig.isSingleMerchant &&
-            state.storeTaxConfig.useVATbyDefault
-          ) {
-            console.log("All to LTD, all with VAT");
-            taxes = state.cartProducts.reduce(
-              (totals, product) => {
+          // taxes = calculateTaxes(
+          //   state.cartProducts,
+          //   state.storeTaxConfig.isSingleMerchant,
+          //   state.storeTaxConfig.useVATbyDefault
+          // );
 
-                const price = product.priceAfterDiscount
-                  ? product.priceAfterDiscount
-                  : product.product_price;
-
-                // Accumulate total for products without VAT
-                totals.noVATTotalSum = 0;
-
-                // Accumulate total for products with VAT
-                totals.withVATTotalSum += price * product.inCartQuantity;
-
-                // Add VAT value
-                const vatValue = parseFloat(product.VAT_value || 0);
-                totals.VATSum += parseFloat(state.taxes.VATSum) + vatValue;
-
-                // Add excise value
-                const exciseValue = parseFloat(product.excise_value || 0);
-                totals.exciseSum += exciseValue * product.inCartQuantity;
-
-                console.log("totals", totals);
-                return totals;
-              },
-              {
-                withVATTotalSum: 0,
-                noVATTotalSum: 0,
-                VATSum: 0,
-                exciseSum: 0,
-              }
-            );
-          }
-          //If all products without VAT (isSingleMerchant === true)
-          // All from FOP, all without VAT
-          if (
-            state.storeTaxConfig.isSingleMerchant &&
-            !state.storeTaxConfig.useVATbyDefault
-          ) {
-            console.log("All from FOP, all without VAT");
-            taxes = state.cartProducts.reduce(
-              (totals, product) => {
-                const price = product.priceAfterDiscount
-                  ? product.priceAfterDiscount
-                  : product.product_price;
-
-                // Accumulate total for products without VAT
-                totals.noVATTotalSum += price * product.inCartQuantity;
-
-                // Accumulate total for products with VAT
-                totals.withVATTotalSum = 0;
-
-                // Add VAT value
-                // const vatValue = parseFloat(product.VAT_value || 0);
-                totals.VATSum = 0;
-
-                // Add excise value
-                const exciseValue = parseFloat(product.excise_value || 0);
-                totals.exciseSum += exciseValue * product.inCartQuantity;
-
-                console.log("totals", totals);
-                return totals;
-              },
-              {
-                withVATTotalSum: 0,
-                noVATTotalSum: 0,
-                VATSum: 0,
-                exciseSum: 0,
-              }
-            );
-          }
-          //If products with and without VAT (isSingleMerchant === false)
-          //VAT to LTD, without VAT to FOP
-          if (
-            !state.storeTaxConfig.isSingleMerchant &&
-            !state.storeTaxConfig.useVATbyDefault
-          ) {
-            // Calculate taxes
-            console.log("VAT to LTD, without VAT to FOP");
-            taxes = state.cartProducts.reduce(
-              (totals, product) => {
-             
-                const price = product.priceAfterDiscount
-                  ? product.priceAfterDiscount
-                  : product.product_price;
-
-                if (!product.is_VAT_Excise) {
-                  // Accumulate total for products without VAT
-                  totals.noVATTotalSum += price * product.inCartQuantity;
-                  
-                } else {
-                  // Accumulate total for products with VAT
-                  totals.withVATTotalSum += price * product.inCartQuantity;
-
-                  // Add VAT value
-                  const vatValue = parseFloat(product.VAT_value || 0);
-                            
-                  totals.VATSum += parseFloat(state.taxes.VATSum) + vatValue;
-                 
-                  // Add excise value
-                  const exciseValue = parseFloat(product.excise_value || 0);
-                  totals.exciseSum += exciseValue * product.inCartQuantity;
-                }
-                console.log("totals", totals);
-                return totals;
-              },
-              {
-                withVATTotalSum: 0,
-                noVATTotalSum: 0,
-                VATSum: 0,
-                exciseSum: 0,
-              }
-            );
-          }
           // Update state with calculated taxes
-          state.taxes = {
-            withVATTotalSum: taxes.withVATTotalSum.toFixed(2),
-            noVATTotalSum: taxes.noVATTotalSum.toFixed(2),
-            VATSum: taxes.VATSum.toFixed(2),
-            exciseSum: taxes.exciseSum.toFixed(2),
-          };
+          // console.log("state.taxes.VATSum", state.taxes.VATSum);
+          // console.log("taxes", taxes);
+
+          // state.taxes = {
+          //   withVATTotalSum: taxes.withVATTotalSum.toFixed(2),
+          //   noVATTotalSum: taxes.noVATTotalSum.toFixed(2),
+          //   VATSum: taxes.VATSum.toFixed(2),
+          //   exciseSum: taxes.exciseSum.toFixed(2),
+          // };
         } else {
           // Reset state if cart is empty
           state.cartTotalSum = 0;
-          state.taxes = {
-            withVATTotalSum: 0,
-            noVATTotalSum: 0,
-            VATSum: 0,
-            exciseSum: 0,
-          };
+          // state.taxes = {
+          //   withVATTotalSum: 0,
+          //   noVATTotalSum: 0,
+          //   VATSum: 0,
+          //   exciseSum: 0,
+          // };
         }
       },
     },
@@ -218,8 +130,30 @@ export const cartSlice = createSlice({
             return total + price * product.inCartQuantity;
           }, 0)
           .toFixed(2);
+
+        // let taxes = state.taxes;
+        //If all products with VAT (isSingleMerchant === true)
+        // All to LTD, all with VAT
+
+        // taxes = calculateTaxes(
+        //   state.cartProducts,
+        //   state.storeTaxConfig.isSingleMerchant,
+        //   state.storeTaxConfig.useVATbyDefault
+        // );
+        // state.taxes = {
+        //   withVATTotalSum: taxes.withVATTotalSum.toFixed(2),
+        //   noVATTotalSum: taxes.noVATTotalSum.toFixed(2),
+        //   VATSum: taxes.VATSum.toFixed(2),
+        //   exciseSum: taxes.exciseSum.toFixed(2),
+        // };
       } else {
         state.cartTotalSum = 0;
+        // state.taxes = {
+        //   withVATTotalSum: 0,
+        //   noVATTotalSum: 0,
+        //   VATSum: 0,
+        //   exciseSum: 0,
+        // };
       }
     },
 
@@ -240,55 +174,65 @@ export const cartSlice = createSlice({
             return total + price * product.inCartQuantity;
           }, 0)
           .toFixed(2);
-
+        // let taxes = state.taxes;
         // Calculate taxes
-        const taxes = state.cartProducts.reduce(
-          (totals, product) => {
-            const price = product.priceAfterDiscount
-              ? product.priceAfterDiscount
-              : product.product_price;
+        // const taxes = state.cartProducts.reduce(
+        //   (totals, product) => {
+        //     const price = product.priceAfterDiscount
+        //       ? product.priceAfterDiscount
+        //       : product.product_price;
+        //     const discountValue = product.discountValue;
+        //     if (!product.is_VAT_Excise) {
+        //       // Accumulate total for products without VAT
+        //       totals.noVATTotalSum += price * product.inCartQuantity;
+        //     } else {
+        //       // Accumulate total for products with VAT
+        //       totals.withVATTotalSum += price * product.inCartQuantity;
 
-            if (!product.is_VAT_Excise) {
-              // Accumulate total for products without VAT
-              totals.noVATTotalSum += price * product.inCartQuantity;
-            } else {
-              // Accumulate total for products with VAT
-              totals.withVATTotalSum += price * product.inCartQuantity;
+        //       // Add VAT value
+        //       const vatValue = parseFloat(product.VAT_value || 0);
+        //       if (product.hasLowerPrice) {
+        //         console.log("discountValue", discountValue);
+        //         totals.VATSum +=
+        //           parseFloat(state.taxes.VATSum) + vatValue * discountValue;
+        //       } else {
+        //         totals.VATSum += parseFloat(state.taxes.VATSum) + vatValue;
+        //       }
 
-              // Add VAT value
-              const vatValue = parseFloat(product.VAT_value || 0);
-              totals.VATSum += vatValue; // Assuming 20% VAT
-
-              // Add excise value
-              const exciseValue = parseFloat(product.excise_value || 0);
-              totals.exciseSum += exciseValue * product.inCartQuantity;
-            }
-            console.log("totals", totals);
-            return totals;
-          },
-          {
-            withVATTotalSum: 0,
-            noVATTotalSum: 0,
-            VATSum: 0,
-            exciseSum: 0,
-          }
-        );
-
+        //       // Add excise value
+        //       const exciseValue = parseFloat(product.excise_value || 0);
+        //       totals.exciseSum += exciseValue * product.inCartQuantity;
+        //     }
+        //     console.log("totals", totals);
+        //     return totals;
+        //   },
+        //   {
+        //     withVATTotalSum: 0,
+        //     noVATTotalSum: 0,
+        //     VATSum: 0,
+        //     exciseSum: 0,
+        //   }
+        // );
+        // taxes = calculateTaxes(
+        //   state.cartProducts,
+        //   state.storeTaxConfig.isSingleMerchant,
+        //   state.storeTaxConfig.useVATbyDefault
+        // );
         // Update state with calculated taxes
-        state.taxes = {
-          withVATTotalSum: taxes.withVATTotalSum.toFixed(2),
-          noVATTotalSum: taxes.noVATTotalSum.toFixed(2),
-          VATSum: taxes.VATSum.toFixed(2),
-          exciseSum: taxes.exciseSum.toFixed(2),
-        };
+        // state.taxes = {
+        //   withVATTotalSum: taxes.withVATTotalSum.toFixed(2),
+        //   noVATTotalSum: taxes.noVATTotalSum.toFixed(2),
+        //   VATSum: taxes.VATSum.toFixed(2),
+        //   exciseSum: taxes.exciseSum.toFixed(2),
+        // };
       } else {
         state.cartTotalSum = 0;
-        state.taxes = {
-          withVATTotalSum: 0,
-          noVATTotalSum: 0,
-          VATSum: 0,
-          exciseSum: 0,
-        };
+        // state.taxes = {
+        //   withVATTotalSum: 0,
+        //   noVATTotalSum: 0,
+        //   VATSum: 0,
+        //   exciseSum: 0,
+        // };
       }
     },
 
@@ -339,59 +283,65 @@ export const cartSlice = createSlice({
           }, 0)
           .toFixed(2);
 
-        const taxes = state.cartProducts.reduce(
-          (totals, product) => {
-            const price = product.priceAfterDiscount
-              ? product.priceAfterDiscount
-              : product.product_price;
+        // const taxes = state.cartProducts.reduce(
+        //   (totals, product) => {
+        //     const price = product.priceAfterDiscount
+        //       ? product.priceAfterDiscount
+        //       : product.product_price;
 
-            if (!product.is_VAT_Excise) {
-              // Accumulate total for products without VAT
-              const currentNoVATTotalSum = parseFloat(totals.noVATTotalSum);
-              const newNoVATTotalSumValue =
-                currentNoVATTotalSum + price * product.inCartQuantity;
-              totals.noVATTotalSum = newNoVATTotalSumValue;
-            } else {
-              // Accumulate total for products with VAT
-              totals.withVATTotalSum += price * product.inCartQuantity;
+        //     if (!product.is_VAT_Excise) {
+        //       // Accumulate total for products without VAT
+        //       const currentNoVATTotalSum = parseFloat(totals.noVATTotalSum);
+        //       const newNoVATTotalSumValue =
+        //         currentNoVATTotalSum + price * product.inCartQuantity;
+        //       totals.noVATTotalSum = newNoVATTotalSumValue;
+        //     } else {
+        //       // Accumulate total for products with VAT
+        //       totals.withVATTotalSum += price * product.inCartQuantity;
 
-              // Add VAT value
-              const vatValue = parseFloat(product.VAT_value || 0);
-              console.log("vatValue", vatValue);
-              console.log("before totals.VATSum", totals.VATSum);
-              console.log("state.taxes.VATSum", state.taxes.VATSum);
-              totals.VATSum += vatValue;
-              console.log("after totals.VATSum", totals.VATSum);
-              // Add excise value
-              const exciseValue = parseFloat(product.excise_value || 0);
-              totals.exciseSum += exciseValue * product.inCartQuantity;
-            }
-            console.log("totals", totals);
-            return totals;
-          },
-          {
-            withVATTotalSum: state.taxes.withVATTotalSum,
-            noVATTotalSum: state.taxes.noVATTotalSum,
-            VATSum: state.taxes.VATSum,
-            exciseSum: state,
-          }
-        );
+        //       // Add VAT value
+        //       const vatValue = parseFloat(product.VAT_value || 0);
+        //       console.log("vatValue", vatValue);
+        //       console.log("before totals.VATSum", totals.VATSum);
+        //       console.log("state.taxes.VATSum", state.taxes.VATSum);
+        //       totals.VATSum += vatValue;
+        //       console.log("after totals.VATSum", totals.VATSum);
+        //       // Add excise value
+        //       const exciseValue = parseFloat(product.excise_value || 0);
+        //       totals.exciseSum += exciseValue * product.inCartQuantity;
+        //     }
+        //     console.log("totals", totals);
+        //     return totals;
+        //   },
+        //   {
+        //     withVATTotalSum: state.taxes.withVATTotalSum,
+        //     noVATTotalSum: state.taxes.noVATTotalSum,
+        //     VATSum: state.taxes.VATSum,
+        //     exciseSum: state,
+        //   }
+        // );
+        // let taxes = state.taxes;
 
+        // taxes = calculateTaxes(
+        //   state.cartProducts,
+        //   state.storeTaxConfig.isSingleMerchant,
+        //   state.storeTaxConfig.useVATbyDefault
+        // );
         // Update state with calculated taxes
-        state.taxes = {
-          withVATTotalSum: taxes.withVATTotalSum.toFixed(2),
-          noVATTotalSum: taxes.noVATTotalSum.toFixed(2),
-          VATSum: taxes.VATSum.toFixed(2),
-          exciseSum: taxes.exciseSum.toFixed(2),
-        };
+        // state.taxes = {
+        //   withVATTotalSum: taxes.withVATTotalSum.toFixed(2),
+        //   noVATTotalSum: taxes.noVATTotalSum.toFixed(2),
+        //   VATSum: taxes.VATSum.toFixed(2),
+        //   exciseSum: taxes.exciseSum.toFixed(2),
+        // };
       } else {
         state.cartTotalSum = 0;
-        state.taxes = {
-          withVATTotalSum: 0,
-          noVATTotalSum: 0,
-          VATSum: 0,
-          exciseSum: 0,
-        };
+        // state.taxes = {
+        //   withVATTotalSum: 0,
+        //   noVATTotalSum: 0,
+        //   VATSum: 0,
+        //   exciseSum: 0,
+        // };
       }
     },
     decrementProductsCount: (state, action) => {
@@ -423,54 +373,60 @@ export const cartSlice = createSlice({
             return total + price * product.inCartQuantity;
           }, 0)
           .toFixed(2);
+        // let taxes = state.taxes;
 
-        const taxes = state.cartProducts.reduce(
-          (totals, product) => {
-            const price = product.priceAfterDiscount
-              ? product.priceAfterDiscount
-              : product.product_price;
+        // taxes = calculateTaxes(
+        //   state.cartProducts,
+        //   state.storeTaxConfig.isSingleMerchant,
+        //   state.storeTaxConfig.useVATbyDefault
+        // );
+        // const taxes = state.cartProducts.reduce(
+        //   (totals, product) => {
+        //     const price = product.priceAfterDiscount
+        //       ? product.priceAfterDiscount
+        //       : product.product_price;
 
-            if (!product.is_VAT_Excise) {
-              // Accumulate total for products without VAT
-              totals.noVATTotalSum += price * product.inCartQuantity;
-            } else {
-              // Accumulate total for products with VAT
-              totals.withVATTotalSum += price * product.inCartQuantity;
+        //     if (!product.is_VAT_Excise) {
+        //       // Accumulate total for products without VAT
+        //       totals.noVATTotalSum += price * product.inCartQuantity;
+        //     } else {
+        //       // Accumulate total for products with VAT
+        //       totals.withVATTotalSum += price * product.inCartQuantity;
 
-              // Add VAT value
-              const vatValue = parseFloat(product.VAT_value || 0);
-              totals.VATSum += vatValue; // Assuming 20% VAT
+        //       // Add VAT value
+        //       const vatValue = parseFloat(product.VAT_value || 0);
+        //       totals.VATSum += vatValue; // Assuming 20% VAT
 
-              // Add excise value
-              const exciseValue = parseFloat(product.excise_value || 0);
-              totals.exciseSum += exciseValue * product.inCartQuantity;
-            }
-            console.log("totals", totals);
-            return totals;
-          },
-          {
-            withVATTotalSum: 0,
-            noVATTotalSum: 0,
-            VATSum: 0,
-            exciseSum: 0,
-          }
-        );
+        //       // Add excise value
+        //       const exciseValue = parseFloat(product.excise_value || 0);
+        //       totals.exciseSum += exciseValue * product.inCartQuantity;
+        //     }
+        //     console.log("totals", totals);
+        //     return totals;
+        //   },
+        //   {
+        //     withVATTotalSum: 0,
+        //     noVATTotalSum: 0,
+        //     VATSum: 0,
+        //     exciseSum: 0,
+        //   }
+        // );
 
         // Update state with calculated taxes
-        state.taxes = {
-          withVATTotalSum: taxes.withVATTotalSum.toFixed(2),
-          noVATTotalSum: taxes.noVATTotalSum.toFixed(2),
-          VATSum: taxes.VATSum.toFixed(2),
-          exciseSum: taxes.exciseSum.toFixed(2),
-        };
+        // state.taxes = {
+        //   withVATTotalSum: taxes.withVATTotalSum.toFixed(2),
+        //   noVATTotalSum: taxes.noVATTotalSum.toFixed(2),
+        //   VATSum: taxes.VATSum.toFixed(2),
+        //   exciseSum: taxes.exciseSum.toFixed(2),
+        // };
       } else {
         state.cartTotalSum = 0;
-        state.taxes = {
-          withVATTotalSum: 0,
-          noVATTotalSum: 0,
-          VATSum: 0,
-          exciseSum: 0,
-        };
+        // state.taxes = {
+        //   withVATTotalSum: 0,
+        //   noVATTotalSum: 0,
+        //   VATSum: 0,
+        //   exciseSum: 0,
+        // };
       }
     },
     incrementComboProductsCount: (state, action) => {
@@ -496,9 +452,9 @@ export const cartSlice = createSlice({
           .toFixed(2);
       } else {
         state.cartTotalSum = 0;
-        state.withVATTotalSum = 0;
-        state.noVATTotalSum = 0;
-        state.VATSum = 0;
+        // state.withVATTotalSum = 0;
+        // state.noVATTotalSum = 0;
+        // state.VATSum = 0;
       }
     },
     decrementComboProductsCount: (state, action) => {
@@ -536,51 +492,54 @@ export const cartSlice = createSlice({
         state.cartTotalSum = 0;
       }
     },
-    setProductCount: (state, action) => {
-      const product = state.cartProducts.find(
-        (item) => item.id === action.payload.id
-      );
-      product.inCartQuantity = action.payload.count;
+    // setProductCount: (state, action) => {
+    //   const product = state.cartProducts.find(
+    //     (item) => item.id === action.payload.id
+    //   );
+    //   product.inCartQuantity = action.payload.count;
 
-      // Update the cartTotalSum
-      if (state.cartProducts.length > 0) {
-        state.cartTotalSum = state.cartProducts
-          .reduce((total, product) => {
-            console.log("product", product);
-            let price = product.priceAfterDiscount
-              ? product.priceAfterDiscount
-              : product.product_price;
-            if (product.is_VAT_Excise) {
-              const vatAmount = (price * product.inCartQuantity * 0.2).toFixed(
-                2
-              );
-              const withVATAmount = (price * product.inCartQuantity).toFixed(2);
-              state.withVATTotalSum = (
-                parseFloat(state.withVATTotalSum) + parseFloat(withVATAmount)
-              ).toFixed(2);
+    //   // Update the cartTotalSum
+    //   if (state.cartProducts.length > 0) {
+    //     state.cartTotalSum = state.cartProducts
+    //       .reduce((total, product) => {
+    //         console.log("product", product);
+    //         let price = product.priceAfterDiscount
+    //           ? product.priceAfterDiscount
+    //           : product.product_price;
+    //         if (product.is_VAT_Excise) {
+    //           const vatAmount = (price * product.inCartQuantity * 0.2).toFixed(
+    //             2
+    //           );
+    //           const withVATAmount = (price * product.inCartQuantity).toFixed(2);
+    //           state.withVATTotalSum = (
+    //             parseFloat(state.withVATTotalSum) + parseFloat(withVATAmount)
+    //           ).toFixed(2);
 
-              state.VATSum = (
-                parseFloat(state.VATSum) + parseFloat(vatAmount)
-              ).toFixed(2);
-            } else {
-              const noVATAmount = (price * product.inCartQuantity).toFixed(2);
-              state.noVATTotalSum = (
-                parseFloat(state.noVATTotalSum) + parseFloat(noVATAmount)
-              ).toFixed(2);
-            }
-            return total + price * product.inCartQuantity;
-          }, 0)
-          .toFixed(2);
-      } else {
-        state.cartTotalSum = 0;
-      }
-    },
+    //           state.VATSum = (
+    //             parseFloat(state.VATSum) + parseFloat(vatAmount)
+    //           ).toFixed(2);
+    //         } else {
+    //           const noVATAmount = (price * product.inCartQuantity).toFixed(2);
+    //           state.noVATTotalSum = (
+    //             parseFloat(state.noVATTotalSum) + parseFloat(noVATAmount)
+    //           ).toFixed(2);
+    //         }
+    //         return total + price * product.inCartQuantity;
+    //       }, 0)
+    //       .toFixed(2);
+    //   } else {
+    //     state.cartTotalSum = 0;
+    //   }
+    // },
     clearCart: (state) => {
       state.cartProducts = [];
       state.cartTotalSum = 0;
-      state.withVATTotalSum = 0;
-      state.noVATTotalSum = 0;
-      state.VATSum = 0;
+      // state.taxes = {
+      //   withVATTotalSum: 0,
+      //   noVATTotalSum: 0,
+      //   VATSum: 0,
+      //   exciseSum: 0,
+      // };
     },
     setStoreCartTaxConfig: (state, action) => {
       console.log("setStoreCartTaxConfig action.payload", action.payload);
@@ -595,7 +554,7 @@ export const {
   removeFromCart,
   incrementProductsCount,
   decrementProductsCount,
-  setProductCount,
+  // setProductCount,
   clearCart,
   incrementComboProductsCount,
   decrementComboProductsCount,

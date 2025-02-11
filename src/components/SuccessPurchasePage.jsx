@@ -11,9 +11,8 @@ export const SuccessPurchasePage = () => {
   const [showCheck, setShowCheck] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const recieptData = useSelector(selectReciept)
+  const recieptData = useSelector(selectReciept);
 
- 
   useEffect(() => {
     dispatch(clearCart());
     dispatch(
@@ -25,19 +24,17 @@ export const SuccessPurchasePage = () => {
       })
     );
 
- dispatch(clearBuyStatus())
-  
+    dispatch(clearBuyStatus());
   }, []);
   const handleShowCheck = () => {
     setShowCheck(!showCheck);
   };
   useEffect(() => {
-    console.log('recieptData', recieptData)
-}, [recieptData])
+    console.log("recieptData", recieptData);
+  }, [recieptData]);
   const handleGoToMain = () => {
-   
-    navigate('/products')
-  }
+    navigate("/products");
+  };
   return (
     <div className="success-container">
       <div className="success-page-decor-circle">
@@ -52,8 +49,22 @@ export const SuccessPurchasePage = () => {
               <p className="seccess-text">Смачного!</p>
             </div>
             <div className="vertical-buttons">
-             {recieptData.status === "Receipt pending" ?<p>Відсутній звязок з ДПС</p> :<button onClick={handleShowCheck} className="filled-text-button">Показати чек</button>}
-              <button onClick={handleGoToMain} className="filled-text-button">Повернутися на головну сторінку</button>
+              {!Object.hasOwn(recieptData, 'status') || recieptData.status === "Receipt pending" ? (
+                <p className="no-tax-msg">Відсутній звязок з ДПС</p>
+              ) : (
+                <button
+                  onClick={handleShowCheck}
+                  className="filled-text-button wide-button"
+                >
+                  Показати чек
+                </button>
+              )}
+              <button
+                onClick={handleGoToMain}
+                className="filled-text-button wide-button"
+              >
+                Повернутися на головну сторінку
+              </button>
             </div>
           </div>
         </div>

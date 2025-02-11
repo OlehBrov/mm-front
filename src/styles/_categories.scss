@@ -3,12 +3,18 @@
 }
 .filter-item {
   display: flex;
-  &:nth-child(1) {
+  &:nth-child(2) {
     margin-bottom: 80px;
     & .filter-label {
       padding: 30px 20px;
     }
   }
+}
+
+
+.filter-item.invisible{
+  height: 0;
+  overflow: hidden;
 }
 .filter-button-icon-wrapper {
   width: 67px;
@@ -61,8 +67,13 @@
 .filter-label:active {
   background-color: #4b4b5c7a;
 }
-.filter-item:first-child > .filter-label {
 
+.filter-item:first-child > .filter-label{
+border-bottom: 3px solid rgba(0, 0, 0, 0.07);
+}
+
+.filter-item:nth-child(2) > .filter-label {
+border-top: none;
 border-bottom: 3px solid rgba(0, 0, 0, 0.07);
 box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
 }

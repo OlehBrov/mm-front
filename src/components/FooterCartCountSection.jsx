@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectAuthorization,
+  selectBuyStatus,
   selectCart,
   selectCartProducts,
   selectCartTotalSum,
@@ -22,11 +23,26 @@ import { store } from "../redux/store";
 
 export const FooterCartCountSection = () => {
   const [buyFunction, buyingData] = useBuyProductsMutation();
-const storeData = useSelector(selectAuthorization)
+  const storeData = useSelector(selectAuthorization);
   const cart = useSelector(selectCart);
   const cartProducts = useSelector(selectCartProducts);
   const totalSum = useSelector(selectCartTotalSum);
   // const taxesValues = useSelector(selectTaxes);
+
+  const buyStatus = useSelector(selectBuyStatus);
+
+  const [buttonDisabled, setButtonDisabled] = useState(false);
+  // const [showPaymentError, setShowPaymentError] = useState(false);
+
+  useEffect(() => {
+    if (
+      totalSum === 0 ||
+      buyStatus.status === "fetching" ||
+      buyStatus.status === "loading"
+    ) {
+      setButtonDisabled(true);
+    } else setButtonDisabled(false);
+  }, [buyStatus, totalSum]);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   useEffect(() => {
@@ -56,7 +72,7 @@ const storeData = useSelector(selectAuthorization)
       cartProducts: withDateProds, // Replace cartProducts with the modified array
       storeId: storeData.store_id,
     };
-    console.log('modifiedCart', modifiedCart)
+    console.log("modifiedCart", modifiedCart);
     try {
       const result = await buyFunction(modifiedCart).unwrap(); // Unwrap to handle success or error
       if (result) dispatch(setReciept(result));
@@ -77,14 +93,16 @@ const storeData = useSelector(selectAuthorization)
         <p>
           Загальна вартість покупки: <span>{totalSum} грн.</span>
         </p>
-       {/* {taxesValues.VATSum !== 0 && <p>
+        {/* {taxesValues.VATSum !== 0 && <p>
           в тому числі ПДВ: <span>{taxesValues.VATSum} грн.</span>
         </p>} */}
       </div>
       <div className="footer-counter-btn-wrap footer-counter-back-btn-wrap">
         <Link
           to={"/products"}
-          className="footer-counter-btn footer-counter-outlined-btn"
+          className={`footer-counter-btn footer-counter-outlined-btn ${
+            buttonDisabled ? "disabled-btn" : ''
+          }`}
         >
           Повернутися до покупок
         </Link>
@@ -94,7 +112,7 @@ const storeData = useSelector(selectAuthorization)
         <Link
           onClick={() => handleBuy(cart)}
           className={`footer-counter-btn footer-counter-filled-btn ${
-            cartProducts.length ? "" : "disabled-btn"
+            buttonDisabled ? "disabled-btn" : ""
           }`}
         >
           Завершити покупку і оплатити

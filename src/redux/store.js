@@ -12,6 +12,7 @@ import recieptReducer from './features/recieptSlice';
 import buyStatusReducer from './features/buyStatus';
 import terminalStateReducer from './features/terminalSlice'
 import merchantReducer from './features/merchantsSlice'
+
 import { storeApi } from "../api/storeApi";
 import {
   persistStore,

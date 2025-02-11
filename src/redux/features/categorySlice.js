@@ -12,7 +12,7 @@ export const categoriesSlice = createSlice({
           categoryImage: item.Categories.category_image
         };
       });
-console.log('categories', categories)
+
       return categories;
     },
   },

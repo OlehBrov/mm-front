@@ -17,10 +17,7 @@ export const IdleWindow = ({ isOpen, onClose }) => {
   const [onSaleProducts, setOnSaleProducts] = useState([]);
   const { isLoading, isSuccess, isError, data, error } =
     useGetStoreSaleProductsQuery();
-  useEffect(() => {
-    console.log("data.products.lenght", data?.products.lenght);
-    console.log("data.products", data?.products);
-  }, [data]);
+
   if (!isOpen) {
     return null; // Do not render anything if the modal is closed
   }

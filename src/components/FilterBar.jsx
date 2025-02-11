@@ -4,7 +4,7 @@ import { selectCategories, selectFilter } from "../redux/selectors/selectors";
 import { setFilter } from "../redux/features/filterSlice";
 import { HomeIcon } from "./icons/HomeIcon";
 
-export const FilterBar = () => {
+export const FilterBar = ({ hasNewProducts }) => {
   const categories = useSelector(selectCategories);
   const filter = useSelector(selectFilter);
 
@@ -16,7 +16,7 @@ export const FilterBar = () => {
   return (
     <ul className="filter-list">
       {" "}
-      <li className="filter-item">
+      <li className="filter-item" id="all">
         <input
           type="radio"
           name="product-categories"
@@ -35,8 +35,8 @@ export const FilterBar = () => {
         />
         <label htmlFor="all-filter" className="filter-label">
           {/* <div className="filter-button-icon-wrapper"> */}
-            <HomeIcon />
-            {/* <img
+          <HomeIcon />
+          {/* <img
               src="img/icons/home.svg"
               alt=""
               className="filter-button-icon"
@@ -44,29 +44,34 @@ export const FilterBar = () => {
           {/* </div> */}
           <span className="filter-label-text">Головна</span>
         </label>
-
-        {/* <button
-          className="filter-button"
-          type="button"
-          data-category="all"
-          onClick={() =>
+      </li>
+      <li className={`filter-item ${hasNewProducts ? "" : "invisible"}`} id="new">
+        <input
+          type="radio"
+          name="product-categories"
+          id="new-filter"
+          className="filter-radio"
+          value="9999"
+          onChange={() =>
             handleFilterClick({
-              name: "all",
-              category: 0,
+              name: "new",
+              category: 9999,
               subcategory: 0,
-              categoryName: "",
+              categoryName: "Новинки",
             })
           }
-        >
+          checked={filter.category === 9999}
+        />
+        <label htmlFor="new-filter" className="filter-label">
           <div className="filter-button-icon-wrapper">
             <img
-              src="/img/icons/home.svg"
+              src="img/new_products.png"
               alt=""
               className="filter-button-icon"
             />
           </div>
-          На головну
-        </button> */}
+          <span className="filter-label-text">Новинки</span>
+        </label>
       </li>
       {categories.map((el) => {
         return (

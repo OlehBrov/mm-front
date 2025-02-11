@@ -148,8 +148,8 @@
   gap: 20px;
   justify-content: center;
   align-items: center;
-  width: 870px;
-  height: 870px;
+  width: 1070px;
+  height: 1070px;
   border-radius: 50%;
   border: 120px solid #fff;
   // background: linear-gradient(122deg, #ff6a14 50%, #ef9e00 92.79%);
@@ -181,11 +181,14 @@
   position: absolute;
   color: #fff;
   font-size: 30px;
-  bottom: -30%;
+  bottom: -23%;
   width: 150px;
   aspect-ratio: 1;
   background-color: #ff3220;
   border: none;
   border-radius: 50%;
   flex-shrink: 0;
+}
+.cart-paymnent-icon{
+  margin-top: 60px;
 }

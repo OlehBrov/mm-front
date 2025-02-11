@@ -19,6 +19,7 @@ export const selectChildSelected = (state) =>
   state.selectedQuantity.childSelected;
 export const selectSubcategories = (state) => state.subcategories;
 export const selectReciept = (state) => state.reciept;
-export const selectBuyStatus = (state) => state.buyStatus
-export const selectTerminalState = (state) => state.terminalState
-export const selectMerchant = (state) => state.merchant
+export const selectBuyStatus = (state) => state.buyStatus;
+export const selectTerminalState = (state) => state.terminalState;
+export const selectMerchant = (state) => state.merchant;
+

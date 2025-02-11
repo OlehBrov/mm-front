@@ -5,6 +5,7 @@ import { IdleTimerProvider, useIdleTimer } from "react-idle-timer";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   selectAuthorization,
+  selectBuyStatus,
   selectCartProducts,
   selectFilter,
   selectProducts,
@@ -77,8 +78,7 @@ socket.on("product-updated", () => {
 
 socket.on("twoPurchases", () => {
   console.log("twoPurchases");
- 
-})
+});
 
 export const Root = () => {
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
@@ -97,7 +97,9 @@ export const Root = () => {
   const localProducts = useSelector(selectProducts);
   const cartProducts = useSelector(selectCartProducts);
   const currentFilter = useSelector(selectFilter);
+  const buyStatus = useSelector(selectBuyStatus);
 
+  const [buttonDisabled, setButtonDisabled] = useState(false);
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -119,9 +121,8 @@ export const Root = () => {
     setNavigate(navigate);
   }, [navigate]);
   useEffect(() => {
-
     if (merchantData.isSuccess) {
-      dispatch(setMerchantsData(merchantData.data))
+      dispatch(setMerchantsData(merchantData.data));
     }
   }, [merchantData]);
   useEffect(() => {
@@ -133,11 +134,19 @@ export const Root = () => {
       setPageHeading(currentFilter.categoryName);
     }
   }, [currentFilter.category, location]);
-
+ 
+  
+  useEffect(() => {
+    if (
+      totalPrice === 0 ||
+      buyStatus.status === "fetching" ||
+      buyStatus.status === "loading"
+    ) {
+      setButtonDisabled(true);
+    } else setButtonDisabled(false);
+  }, [buyStatus, totalPrice]);
   useEffect(() => {
     const handleScreenStatus = () => {
-      console.log("screen-status received. Current isIdleOpen:", isIdleOpen);
-
       // Emit current idle status
       socket.emit("idle-status", { isIdleOpen });
 
@@ -156,36 +165,8 @@ export const Root = () => {
     };
   }, [isIdleOpen]); // Add `isIdleOpen` as a dependency to ensure the correct value is emitted
 
-  // useEffect(() => {
-  //   // Emit `idle-status` whenever `isIdleOpen` changes
-  //   console.log("isIdleOpen state changed:", isIdleOpen);
-  //   if (idleOpenChecking) socket.emit("idle-status", { isIdleOpen });
-
-  //   if (isIdleOpen) setIdleOpenChecking(false);
-  // }, [isIdleOpen, idleOpenChecking]);
-
-  // socket.on("screen-status", () => {
-  //   console.log("screen-status received. Current isIdleOpen:", isIdleOpen);
-
-  //   // This ensures the current value of `isIdleOpen` is emitted
-  //   socket.emit("idle-status", { isIdleOpen });
-  //   if (!isIdleOpen) setIdleOpenChecking(true);
-  // });
-
-  // const handleKeyPress = (event) => {
-  //   console.log('handleKeyPress event', event)
-  //   if (event.key === "Enter") {
-  //     barCodeHandler(barcode);
-  //     barcode = "";
-  //     return;
-  //   }
-  //   if (event.type === "keypress") {
-  //     barcode += event.key;
-  //   }
-  // };
   useEffect(() => {
     const handleKeyPress = (event) => {
-      console.log("handleKeyPress event", event);
       if (event.key === "Enter") {
         barCodeHandler(barcode);
         barcode = "";
@@ -215,7 +196,6 @@ export const Root = () => {
   }, [cartProducts]);
   const barCodeHandler = (code) => {
     setNoProdError(false);
-    console.log("code", code);
     setSearchBarcode(code);
 
     // const foundProduct = await localProducts.find(
@@ -229,111 +209,13 @@ export const Root = () => {
     setIdleEvent(events);
   };
 
-  // useEffect(() => {
-  //   document.addEventListener("keypress", handleKeyPress);
-  //   resetIdleTimer();
-  //   return () => {
-  //     document.removeEventListener("keypress", handleKeyPress);
-  //     clearAllTimers();
-  //   };
-  // }, [localProducts]);
-
-  // IdleWindow Handlers
-  // const openIdleWindow = () => {
-  //   setIsOpenIdle(true);
-  //   clearAllTimers();
-  // };
-  // const closeIdleWindow = () => {
-  //   setIsOpenIdle(false);
-  //   resetIdleTimer(); // Restart idleTimer after closing the IdleWindow
-  //   navigate("/products"); // Navigate to products
-  // };
-
-  // // NotifyWindow Handlers
-  // const openNotifyWindow = () => {
-  //   setIsOpenNotify(true);
-  //   clearAllTimers();
-  // };
-  // const closeNotifyWindow = () => {
-  //   setIsOpenNotify(false);
-  //   resetNotifyTimer(); // Restart notifyTimer after closing the NotifyWindow
-  // };
-
-  // const handleNewUser = () => {
-  //   dispatch(clearCart()); // Clear cart when new user is selected
-  //   closeNotifyWindow();
-  //   resetIdleTimer(); // Start idleTimer after cart is cleared
-  // };
-
-  // const handlePreviousUser = () => {
-  //   closeNotifyWindow(); // Keep the cart and close NotifyWindow
-  //   resetNotifyTimer(); // Restart notifyTimer
-  // };
-
-  // // Resets the idle timer when cart is empty
-  // const resetIdleTimer = () => {
-  //   console.log("invoked resetIdleTimer");
-  //   clearTimeout(idleTimer);
-  //   if (!isOpenIdle && !cartProducts.length) {
-  //     const newIdleTimer = setTimeout(() => {
-  //       openIdleWindow();
-  //     }, idleTimeout);
-  //     setIdleTimer(newIdleTimer);
-  //   }
-  // };
-  // // Resets the notify timer when cart has products
-  // const resetNotifyTimer = () => {
-  //   clearTimeout(notifyTimer);
-  //   if (!isOpenNotify && cartProducts.length) {
-  //     const newNotifyTimer = setTimeout(() => {
-  //       openNotifyWindow();
-  //     }, idleTimeout);
-  //     setNotifyTimer(newNotifyTimer);
-  //   }
-  // };
-
-  // // Clears both timers when necessary
-  // const clearAllTimers = () => {
-  //   clearTimeout(idleTimer);
-  //   clearTimeout(notifyTimer);
-  // };
-
-  // // User click handling (resets the appropriate timer based on cart state)
-  // const handleUserClick = () => {
-  //   console.log("handleUserClick");
-  //   if (cartProducts.length) {
-  //     console.log("resetNotifyTimer");
-  //     resetNotifyTimer(); // If cart is not empty, reset notifyTimer
-  //   } else {
-  //     console.log("resetIdleTimer");
-  //     resetIdleTimer(); // If cart is empty, reset idleTimer
-  //   }
-  // };
-  // const handleNotifyTimerEnd = () => {
-  //   closeNotifyWindow(); // Close the NotifyWindow
-  //   openIdleWindow(); // Show the IdleWindow when notifyTimer ends
-  // };
-
-  // // Effect to manage the timer based on cart state
-  // useEffect(() => {
-  //   if (cartProducts.length) {
-  //     clearTimeout(idleTimer); // Clear idleTimer when cart is not empty
-  //     resetNotifyTimer(); // Start notifyTimer when cart is not empty
-  //   } else {
-  //     clearTimeout(notifyTimer); // Clear notifyTimer when cart is empty
-  //     resetIdleTimer(); // Start idleTimer when cart is empty
-  //   }
-  // }, [cartProducts]);
   useEffect(() => {
-    console.log("searchBarcode", searchBarcode);
     if (searchBarcode) {
       setSkip(false);
     }
   }, [searchBarcode]);
   useEffect(() => {
-    console.log("singleProduct", singleProduct);
     if (singleProduct.isError) {
-      console.log("singleProduct.error", singleProduct.error);
       setNoProdError(true);
       setTimeout(() => {
         setNoProdError(false);
@@ -436,7 +318,6 @@ export const Root = () => {
     dispatch(clearCart());
   };
 
-
   return (
     <IdleTimerProvider
       timeout={idleTimeout}
@@ -457,7 +338,7 @@ export const Root = () => {
               <Link
                 onClick={clearCartHandler}
                 className={`footer-cart-link on-header-cart-link footer-cancel-link ${
-                  totalPrice !== 0 ? "" : "link-disabled"
+                  buttonDisabled && "link-disabled"
                 }`}
               >
                 Скасувати

@@ -132,6 +132,7 @@ footer {
   font-weight: 600;
   line-height: normal;
   transition: all 300ms;
+  background: none;
 }
 
 .footer-counter-btn:active {
@@ -150,7 +151,7 @@ footer {
   border: 1px solid var(--text-color-main);
 }
 
-.footer-counter-filled-btn.disabled-btn {
+.disabled-btn {
   pointer-events: none;
   opacity: 0.2;
 }

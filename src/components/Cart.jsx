@@ -37,41 +37,26 @@ export const Cart = () => {
   const [showLoader, setShowLoader] = useState(false);
   const [showTwoPaysInfo, setShowTwoPaysInfo] = useState(false);
   const [currentPaymentCount, setCurrentPaymentCount] = useState(1);
-  // const [showPaymentError, setShowPaymentError] = useState(false);
-useEffect(() => {
-  socket.once("secondPayment", () => {
-    console.log("secondPayment");
-    setCurrentPaymentCount(2)
-  });
 
-  // Cleanup in case the component unmounts before the event triggers
-  return () => {
-    socket.off("secondPayment");
-    setCurrentPaymentCount(1)
-  };
-}, []);
+  useEffect(() => {
+    socket.once("secondPayment", () => {
+      console.log("secondPayment");
+      setCurrentPaymentCount(2);
+    });
+
+    // Cleanup in case the component unmounts before the event triggers
+    return () => {
+      socket.off("secondPayment");
+      setCurrentPaymentCount(1);
+    };
+  }, []);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   // console.log("cartProducts", cartProducts);
 
   useEffect(() => {
-    console.log('cart', cart)
-    // if (
-    //   parseFloat(cart.taxes.noVATTotalSum) > 0 &&
-    //   parseFloat(cart.taxes.withVATTotalSum) > 0
-    // ) {
-    //   setShowTwoPaysInfo(true);
-    //   console.log(
-    //     "cart.taxes.noVATTotalSum ",
-    //     parseFloat(cart.taxes.noVATTotalSum)
-    //   );
-    //   console.log(
-    //     "cart.taxes.withVATTotalSum ",
-    //     parseFloat(cart.taxes.withVATTotalSum)
-    //   );
-    // }
-     
+    console.log("cart", cart);
   }, [cart]);
 
   useEffect(() => {
@@ -79,11 +64,9 @@ useEffect(() => {
     setShowLoader(false);
   }, []);
   useEffect(() => {
-    
     if (cancelData.isSuccess) setShowLoader(false);
   }, [cancelData]);
   useEffect(() => {
-   
     if (buyStatus.status === "fetching" || buyStatus.status === "loading") {
       setShowPaymentWaiting(true);
 
@@ -134,7 +117,10 @@ useEffect(() => {
                   Для оплати скористайтесь терміналом
                 </p>
               )}
-              <div>
+              <p className="notification-light-text">
+                Сума до сплати: {totalSum} грн.
+              </p>
+              <div className="cart-paymnent-icon">
                 <img src="img/icons/mobile.png" alt="" />
               </div>
               <button

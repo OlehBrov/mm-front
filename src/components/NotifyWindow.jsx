@@ -73,13 +73,13 @@ export const NotifyWindow = ({
             <div className="double-buttons-wrapper">
               <button
                 onClick={onNewUser}
-                className="footer-counter-btn footer-counter-filled-btn notify-button"
+                className="footer-counter-btn notify-button"
               >
                 Я новий покупець
               </button>
               <button
                 onClick={onPreviousUser}
-                className="footer-counter-btn footer-counter-filled-btn notify-button"
+                className="footer-counter-btn  notify-button"
               >
                 Я тут
               </button>

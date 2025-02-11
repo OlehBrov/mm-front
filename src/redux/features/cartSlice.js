@@ -27,9 +27,7 @@ export const cartSlice = createSlice({
         console.log("action.payload", action.payload);
 
         const { product, taxData } = action.payload;
-        console.log('state.cartProducts.length', state.cartProducts.length)
-        console.log('state.cartProducts.length > 1', state.cartProducts.length > 0)
-        console.log('state.separatePayment', state.separatePayment)
+        
         if (!state.separatePayment && state.cartProducts.length > 0) {
           console.log('state.cartProducts[state.cartProducts.length - 1].is_VAT_Excise', state.cartProducts[state.cartProducts.length - 1].is_VAT_Excise)
           console.log(' product.is_VAT_Excise',  product.is_VAT_Excise)

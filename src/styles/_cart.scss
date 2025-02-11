@@ -6,10 +6,11 @@
 
 .cartlist-head {
   display: grid;
-  grid-template-columns: 440px 260px 1fr;
+  grid-template-columns: 512px 260px 1fr;
   grid-template-rows: 1fr;
   gap: 0px 0px;
-  background: linear-gradient(122deg, #ff6a14 50%, #ef9e00 92.79%);
+  // background: linear-gradient(122deg, #ff6a14 50%, #ef9e00 92.79%);
+  background-color: var(--main-color-yellow);
   color: #fff;
   padding: 31px 20px;
   border-radius: 20px;
@@ -151,7 +152,8 @@
   height: 870px;
   border-radius: 50%;
   border: 120px solid #fff;
-  background: linear-gradient(122deg, #ff6a14 50%, #ef9e00 92.79%);
+  // background: linear-gradient(122deg, #ff6a14 50%, #ef9e00 92.79%);
+  background: var(--main-color-yellow);
 }
 
 .payment-wait-container {

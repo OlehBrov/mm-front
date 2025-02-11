@@ -218,12 +218,13 @@ export const Products = () => {
             <Scrollbars
               ref={scrollRef}
               renderTrackVertical={TrackVertical}
-              renderThumbVertical={(props)=>ThumbVertical(props, scrollRef)}
-              style={{ width: 740, paddingTop: 20 }}
+              renderThumbVertical={(props) => ThumbVertical(props, scrollRef)}
+              style={{ width: 740 }}
               thumbSize={190}
               autoHeight
               autoHeightMin={400}
               autoHeightMax={scrollHeight}
+              hideTracksWhenNotNeeded={true}
             >
               <div className={`products-grid`}>
                 {data.products.map((el) => (

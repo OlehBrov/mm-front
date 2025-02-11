@@ -1,5 +1,5 @@
 .sidebar {
-  padding-top: 20px;
+  // padding-top: 20px;
 }
 .filter-item {
   display: flex;
@@ -29,6 +29,7 @@
   cursor: pointer;
   height: 0;
   width: 0;
+  display: none;
 }
 
 .filter-label {
@@ -37,9 +38,11 @@
   gap: 20px;
   padding: 20px;
   background-color: #fff;
-  border-radius: 0px 20px 20px 0px;
+  // border-radius: 0px 5px 5px 0px;
   border-style: none;
-  box-shadow: 0px 2px 20px 4px rgba(0, 0, 0, 0.1);
+  // box-shadow: 0px 2px 20px 4px rgba(0, 0, 0, 0.1);
+  border-top: 3px solid rgba(0, 0, 0, 0.07);
+  border-right: 3px solid rgba(0, 0, 0, 0.07);
   color: var(--text-color-main);
   text-align: start;
   display: inline-flex;
@@ -55,12 +58,25 @@
   transition: all 300ms linear;
 }
 
-.filter-radio:checked + .filter-label .filter-label-text {
- 
-  font-weight: 900;
-  
+.filter-label:active {
+  background-color: #4b4b5c7a;
 }
-.filter-radio:checked+.filter-label .filter-label-text::after{
+.filter-item:first-child > .filter-label {
+
+border-bottom: 3px solid rgba(0, 0, 0, 0.07);
+box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
+}
+
+.filter-item:last-child > .filter-label {
+ 
+  border-bottom: 3px solid rgba(0, 0, 0, 0.07);
+  box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
+}
+.filter-radio:checked + .filter-label .filter-label-text {
+  font-weight: 900;
+  text-shadow: 1px 2px rgba(0, 0, 0, 0.6);
+}
+.filter-radio:checked + .filter-label .filter-label-text::after {
   opacity: 1;
 }
 .filter-label-text {
@@ -68,14 +84,14 @@
   font-size: 24px;
   font-weight: 500;
 }
-.filter-label-text::after{
-  content: '';
+.filter-label-text::after {
+  content: "";
   position: absolute;
   bottom: -15px;
   left: 0;
   width: 40px;
   height: 8px;
-  background-color: var(--color-yellow);
+  background-color: var(--main-color-yellow);
   opacity: 0;
   transition: opacity 300ms;
 }

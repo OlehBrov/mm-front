@@ -20,6 +20,7 @@ header {
   margin-right: 140px;
   text-align: left;
   color: var(--text-color-main);
+  outline: none;
   &.centered{
     margin: 0 auto;
   }
@@ -63,6 +64,6 @@ header {
 .on-header-cart-link.on-header-cart-link{
   margin-right: 0;
   margin-left: auto;
-  background-color: #000;
-  color: #fff;
+  // background-color: #000;
+  color: #000000;
 }

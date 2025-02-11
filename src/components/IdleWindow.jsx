@@ -41,12 +41,14 @@ export const IdleWindow = ({ isOpen, onClose }) => {
           <div className="light-shadow" />
         </div>
         <div className="portal-content">
-          {!data.products.length && (
+          {!data.products.length && ( // shoud be  !data.products.length
             <div className="no-sale-idle-logo-wrapper">
-<img src="img/NEXT-RETAIL-LOGO.png" alt="" />
+              <p className="screen-saver-logo">
+                <span className="highlight-logo">NEXT</span>RETAIL
+              </p>
             </div>
           )}
-          {data.products.length > 0 && (
+          {data.products.length > 0 && ( // shoud be data.products.length
             <>
               <div className="idle-sale-marker-wrapper">
                 <p className="idle-sale-marker-text">Акція дня</p>
@@ -72,7 +74,7 @@ export const IdleWindow = ({ isOpen, onClose }) => {
                   {data.products.map((product) => (
                     <SwiperSlide key={product.id}>
                       {" "}
-                      <ProductCard product={product} onIdle={true}/>
+                      <ProductCard product={product} onIdle={true} />
                     </SwiperSlide>
                   ))}
                 </Swiper>
@@ -95,7 +97,7 @@ export const IdleWindow = ({ isOpen, onClose }) => {
             </p>
             <p className="portal-idle-footer-text">
               Ми пропонуємо широкий спектр послуг від встановлення
-              мікромаркетів, вендингових апаратів та кавомашин до їх
+              мікромаркетів, вендингових апаратів, кавомашин, пуріфаєрів до їх
               обслуговування
             </p>
           </div>

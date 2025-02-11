@@ -10,6 +10,11 @@
   overflow: hidden;
   z-index: 100;
 }
+
+.screen-saver-logo{
+  font-size: 120px;
+  text-shadow: -2px 3px 5px rgba(0, 0, 0, 0.6);
+}
 .red-decor {
   position: absolute;
   width: 1500px;
@@ -18,14 +23,14 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
-  background: #ff6a14;
+  background: var(--main-color-yellow);
   border-radius: 26% 26% 50% 50% / 0% 0% 20% 20%;
   overflow: hidden;
 }
 
 .idle-circle {
   position: absolute;
-  background-color: var(--color-yellow);
+  background-color: var(--main-color-yellow);
   opacity: 0.4;
 }
 
@@ -121,7 +126,8 @@
   margin: auto 30px 65px 30px;
   box-shadow: 0px 2px 20px 4px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  background: linear-gradient(109deg, #ff6a14 24.88%, #ef9e00 63.16%);
+  // background: linear-gradient(109deg, #ff6a14 24.88%, #ef9e00 63.16%);
+  background: var(--main-color-yellow);
 }
 
 .qr-link-wrap {
@@ -239,12 +245,15 @@
 }
 
 .idle-close-button {
-  display: inline-flex;
-  padding: 20px 50px;
+display: inline-flex;
+  padding: 64px 140px;
   justify-content: center;
   align-items: center;
   gap: 15px;
-  border-radius: 50px;
-  background: #000;
-  color: #fff;
+  border-radius: 5px;
+  // background: #1e1c17;
+  color: #ffffff;
+  background-color: #00000013;
+  font-size: 48px;
+  border: 3px solid rgba(0, 0, 0, 0.07);
 }

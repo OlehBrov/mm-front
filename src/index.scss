@@ -54,7 +54,7 @@
 }
 :root{
   --text-color-main: #292929;
-  --color-yellow: #ffbc0d;
+  --main-color-yellow: #ffbc0d;
 }
 *, ::after, ::before {
   box-sizing: border-box;
@@ -157,7 +157,7 @@ height: 100%;
 
 .filter-list {
   display: flex;
-  gap: 10px;
+  // gap: 10px;
   flex-direction: column;
 }
 
@@ -194,7 +194,8 @@ height: 100%;
   width: 800px;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: linear-gradient(122deg, #FF6A14 50%, #EF9E00 92.79%);
+  // background: linear-gradient(122deg, #FF6A14 50%, #EF9E00 92.79%);
+  background: var(--main-color-yellow);
   flex-shrink: 0;
   display: flex;
   align-items: center;

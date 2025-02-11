@@ -1,12 +1,13 @@
 .track-vertical {
-  width: 15px;
+
   top: 0;
   right: 0;
   bottom: 0;
   //   transform: translateY(2.5%);
   height: 100%;
-  background-color: #d9d9d9;
+  background-color: #d9d9d95e;
   border-radius: 3px;
+  width: 3px !important;
   transform: translateX(-20px);
 }
 .track-vertical .thumb-vertical {
@@ -18,4 +19,8 @@
   position: relative;
   left: -18px;
   background-color: #fff;
+  transition: all 300ms;
+}
+.thumb-vertical:active{
+background-color: #4b4b5c7a;
 }

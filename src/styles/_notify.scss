@@ -3,7 +3,8 @@
   height: 1634px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(122deg, #ff6a14 50%, #ef9e00 92.79%);
+  // background: linear-gradient(122deg, #ff6a14 50%, #ef9e00 92.79%);
+  background: var(--main-color-yellow);
   display: flex;
   align-items: center;
   justify-content: center;

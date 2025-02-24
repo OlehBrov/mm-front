@@ -21,6 +21,8 @@ import { ProductCard } from "./ProductCard";
 import { setSubcategories } from "../redux/features/subcategoriesSlice";
 import { ThumbVertical } from "./ThumbVertical";
 import { TrackVertical } from "./TrackVertical";
+import { setNewProducts } from "../redux/features/showAddConfirmSlice";
+import { EmptyProductsList } from "./EmptyProductsList";
 
 export const Products = () => {
   const currentFilter = useSelector(selectFilter);
@@ -39,9 +41,11 @@ export const Products = () => {
       filter: currentFilter.category,
       subcategory: currentFilter.subcategory,
     });
-
+  useEffect(() => {
+    console.log("currentFilter", currentFilter);
+    console.log('currentFilter.subcategory', currentFilter.subcategory)
+  }, [currentFilter]);
   const transformData = (data) => {
-
     return data.reduce((acc, item) => {
       const categoryRef = item.Subcategories.category_ref_1C;
       const allInOneProductsRef = 9999;
@@ -71,15 +75,15 @@ export const Products = () => {
 
   const dispatch = useDispatch();
   useEffect(() => {
-  console.log('data', data)
-}, [data])
+    console.log("products income data", data);
+  }, [data]);
   useEffect(() => {
     if (isError) {
       console.log("useGetAllProductsQuery error", error);
       // navigate("/");
       return;
     }
-    if (isSuccess) {
+    if (isSuccess && data.status === "ok") {
       const sortedCategories = [...data.categories].sort((a, b) => {
         return a.Categories.category_priority - b.Categories.category_priority;
       });
@@ -97,11 +101,9 @@ export const Products = () => {
 
   useEffect(() => {
     if (currentFilter.category === 0 || currentFilter.category === 9999) {
-      console.log("setIsSubcategoryVisible(false);");
       setIsSubcategoryVisible(false);
     } else {
       setIsSubcategoryVisible(true);
-      console.log("setIsSubcategoryVisible(true);");
     }
   }, [currentFilter.category]);
 
@@ -158,7 +160,7 @@ export const Products = () => {
                     <>
                       <div className="subcategory-radio-wrapper">
                         <input
-                          type="radio"
+                          type="checkbox"
                           name="product-subcategories"
                           id="all-subcat-filter"
                           className="subcat-filter-radio"
@@ -166,7 +168,7 @@ export const Products = () => {
                           onChange={() =>
                             subcategoryFilterHandler({ product_subcategory: 0 })
                           }
-                          checked={currentFilter.subcategory === 0}
+                          checked={currentFilter.subcategory.includes(0)}
                         />
                         <label
                           htmlFor="all-subcat-filter"
@@ -185,7 +187,7 @@ export const Products = () => {
                                 key={subcat.product_subcategory}
                               >
                                 <input
-                                  type="radio"
+                                  type="checkbox"
                                   name="product-subcategories"
                                   id={subcat.subcategory_name}
                                   className="subcat-filter-radio"
@@ -193,10 +195,9 @@ export const Products = () => {
                                   onChange={() =>
                                     subcategoryFilterHandler(subcat)
                                   }
-                                  checked={
-                                    currentFilter.subcategory ===
+                                  checked={currentFilter.subcategory.includes(
                                     subcat.product_subcategory
-                                  }
+                                  )}
                                 />
                                 <label
                                   htmlFor={subcat.subcategory_name}
@@ -233,14 +234,18 @@ export const Products = () => {
               hideTracksWhenNotNeeded={true}
             >
               <div className={`products-grid`}>
-                {data.products.map((el) => (
-                  <ProductCard
-                    key={el.id}
-                    product={el}
-                    useVATbyDefault={merchantData.useVATbyDefault}
-                    isSingleMerchant={merchantData.isSingleMerchant}
-                  />
-                ))}
+                {data.status === "ok" ? (
+                  data.products.map((el) => (
+                    <ProductCard
+                      key={el.id}
+                      product={el}
+                      useVATbyDefault={merchantData.useVATbyDefault}
+                      isSingleMerchant={merchantData.isSingleMerchant}
+                    />
+                  ))
+                ) : (
+                  <EmptyProductsList />
+                )}
               </div>
             </Scrollbars>
           </div>

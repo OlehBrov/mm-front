@@ -11,7 +11,7 @@
   z-index: 100;
 }
 
-.screen-saver-logo{
+.screen-saver-logo {
   font-size: 120px;
   text-shadow: -2px 3px 5px rgba(0, 0, 0, 0.6);
 }
@@ -106,14 +106,19 @@
 .portal-content {
   width: 760px;
   position: relative;
-  top: 40%;
+  top: 40%; //50%
   transform: translateY(-50%);
   z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 35px;
+  gap: 35px; //294px
+
+  &.no-slider{
+    top: 50%;
+    gap: 294px;
+  }
 }
 .portal-idle-footer {
   display: flex;
@@ -245,7 +250,7 @@
 }
 
 .idle-close-button {
-display: inline-flex;
+  display: inline-flex;
   padding: 64px 140px;
   justify-content: center;
   align-items: center;
@@ -256,4 +261,5 @@ display: inline-flex;
   background-color: #00000013;
   font-size: 48px;
   border: 3px solid rgba(0, 0, 0, 0.07);
+  border-radius: 28px;
 }

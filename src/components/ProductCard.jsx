@@ -15,15 +15,22 @@ import {
 import {
   selectCartProducts,
   selectCartTotalSum,
+  selectShowConfirm,
 } from "../redux/selectors/selectors";
 import { use } from "react";
+import { setShowAddProductsConfirm } from "../redux/features/showAddConfirmSlice";
 
 const SALES = [1, 2, 3, 4, 6, 7, 8];
 const DISCOUNT_SALES = [1, 2, 4];
 const QUANTITY_SALES = [7, 8];
 const MANUAL_SALES = [3, 6];
 
-export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant, onIdle }) => {
+export const ProductCard = ({
+  product,
+  useVATbyDefault,
+  isSingleMerchant,
+  onIdle,
+}) => {
   const [productQtyAvailable, setProductQtyAvailable] = useState(1);
   const [showMarker, setShowMarker] = useState(false);
   const [discountValue, setDiscountValue] = useState(0);
@@ -33,7 +40,7 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant, onIdle
   const [productAvailable, setProductAvailable] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [merchant, setMerchant] = useState(null);
-
+  const showAddConfirm = useSelector(selectShowConfirm);
 
   const cartTotal = useSelector(selectCartTotalSum);
 
@@ -106,6 +113,11 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant, onIdle
   const handleProductClick = (e) => {
     e.preventDefault();
     if (productQtyAvailable > 0) {
+      dispatch(setShowAddProductsConfirm(true));
+      setTimeout(() => {
+        dispatch(setShowAddProductsConfirm(false));
+      }, 1000);
+
       dispatch(
         addToCart({
           product: {
@@ -115,7 +127,7 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant, onIdle
             priceAfterDiscount: newPrice,
             hasLowerPrice,
             merchant,
-            discountValue
+            discountValue,
           },
           taxData: {
             useVATbyDefault,
@@ -128,10 +140,10 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant, onIdle
       setProductQtyAvailable(updatedQtyAvailable);
 
       // Mark product as unavailable if no more stock
-      setShowConfirm(true);
-      setTimeout(() => {
-        setShowConfirm(false);
-      }, 700);
+      // setShowConfirm(true);
+      // setTimeout(() => {
+      //   setShowConfirm(false);
+      // }, 700);
       if (updatedQtyAvailable <= 0) {
         setProductAvailable(false);
       }
@@ -153,9 +165,9 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant, onIdle
         merchant,
         discountValue,
         taxData: {
-            useVATbyDefault,
-            isSingleMerchant,
-          },
+          useVATbyDefault,
+          isSingleMerchant,
+        },
       })
     );
     navigate("/productDetails", { state: { from: { location } } });
@@ -220,13 +232,15 @@ export const ProductCard = ({ product, useVATbyDefault, isSingleMerchant, onIdle
             <p className="product-card-light-text">{newPrice} грн.</p>
           )}
         </div>
-        {!onIdle &&  <button
-          type="button"
-          onClick={(e) => detailsClickHandler(e, product)}
-          className="product-card-details-button"
-        >
-        <DetailsIcon />
-        </button>}
+        {!onIdle && (
+          <button
+            type="button"
+            onClick={(e) => detailsClickHandler(e, product)}
+            className="product-card-details-button"
+          >
+            <DetailsIcon />
+          </button>
+        )}
       </div>
     </Link>
   );

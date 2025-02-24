@@ -65,7 +65,6 @@ export const ProductDetails = ({ taxData }) => {
   }, [detailedProduct]);
   // Setting max available products
   useEffect(() => {
-
     dispatch(setMaxAvailable(Number(detailedProduct.product_left)));
     setDisableIncrease(totalSelected >= maxAvailable);
     setDisableDecrease(totalSelected < 1);
@@ -133,10 +132,11 @@ export const ProductDetails = ({ taxData }) => {
       <div className="circle-800 circle-635" />
       <div className="circle-600" />
       <div className="circle-600 circle-400" />
-      <Link to="#" className="filled-text-button" onClick={handleBackLink}>
-        Назад
-      </Link>
+
       <div className="details-card">
+        <Link to="#" className="filled-text-button details-close-button" onClick={handleBackLink}>
+          <img src="/img/icons/close.svg" alt="" />
+        </Link>
         <div className="details-grid">
           <div className="details-image-wrapper">
             <img src={detailedProduct.product_image} alt="" />

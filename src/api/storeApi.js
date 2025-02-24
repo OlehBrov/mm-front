@@ -179,11 +179,14 @@ export const storeApi = createApi({
       providesTags: ["Auth"],
     }),
     getAllProducts: build.query({
-      query: ({ page, size, filter, subcategory }) => ({
+      query: ({ page, size, filter, subcategory }) => {
+        console.log("filter", filter);
+        console.log("subcategory", subcategory);
+        return({
         url: "/products",
         method: "GET",
         params: { page, size, filter, subcategory },
-      }),
+      })},
       providesTags: ["Products"],
     }),
     getSingleProduct: build.query({

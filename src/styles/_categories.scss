@@ -47,8 +47,8 @@
   // border-radius: 0px 5px 5px 0px;
   border-style: none;
   // box-shadow: 0px 2px 20px 4px rgba(0, 0, 0, 0.1);
-  border-top: 3px solid rgba(0, 0, 0, 0.07);
-  border-right: 3px solid rgba(0, 0, 0, 0.07);
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  border-right: 1px solid rgba(0, 0, 0, 0.07);
   color: var(--text-color-main);
   text-align: start;
   display: inline-flex;
@@ -69,18 +69,18 @@
 }
 
 .filter-item:first-child > .filter-label{
-border-bottom: 3px solid rgba(0, 0, 0, 0.07);
+border-bottom: 1px solid rgba(0, 0, 0, 0.07);
 }
 
 .filter-item:nth-child(2) > .filter-label {
 border-top: none;
-border-bottom: 3px solid rgba(0, 0, 0, 0.07);
+border-bottom: 1px solid rgba(0, 0, 0, 0.07);
 box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
 }
 
 .filter-item:last-child > .filter-label {
  
-  border-bottom: 3px solid rgba(0, 0, 0, 0.07);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
   box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
 }
 .filter-radio:checked + .filter-label .filter-label-text {

@@ -8,8 +8,10 @@ import {
   selectBuyStatus,
   selectCartProducts,
   selectFilter,
+  selectMerchant,
   selectProducts,
   selectSearch,
+  selectShowConfirm,
   selectTerminalState,
 } from "../redux/selectors/selectors";
 import { addToCart, clearCart } from "../redux/features/cartSlice";
@@ -38,12 +40,15 @@ import { NoProduct } from "../components/NoProduct";
 import { setTerminalState } from "../redux/features/terminalSlice";
 import { setMerchantsData } from "../redux/features/merchantsSlice";
 import { setPaymentCount } from "../redux/features/buyStatus.js";
+import { AddProductConfirm } from "../components/AddProductConfirm.jsx";
+import { setShowAddProductsConfirm, setShowConfirm } from "../redux/features/showAddConfirmSlice.js";
 
 const auth_id = 998877;
 // console.log("Connecting with store_id:", auth_id);
 const events = [
   "mousemove",
   "keydown",
+  "keypress",
   "wheel",
   "DOMMouseScroll",
   "mousewheel",
@@ -92,12 +97,15 @@ export const Root = () => {
 
   const [searchBarcode, setSearchBarcode] = useState("");
   const [showNoProdError, setNoProdError] = useState(false);
+  // const [showAddConfirm, setShowConfirm] = useState(false);
+  const [merchant, setMerchant] = useState(null);
 
   const terminalStatus = useSelector(selectTerminalState);
   const localProducts = useSelector(selectProducts);
   const cartProducts = useSelector(selectCartProducts);
   const currentFilter = useSelector(selectFilter);
   const buyStatus = useSelector(selectBuyStatus);
+  const showAddConfirm = useSelector(selectShowConfirm);
 
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const dispatch = useDispatch();
@@ -105,7 +113,7 @@ export const Root = () => {
   const navigate = useNavigate();
   let barcode = "";
 
-  const idleTimeout = 120000;
+  const idleTimeout = 60000;
   const notifyTimeout = 30000;
   const notifyProgressMax = (idleTimeout - notifyTimeout) / 1000;
 
@@ -120,11 +128,16 @@ export const Root = () => {
   useEffect(() => {
     setNavigate(navigate);
   }, [navigate]);
+
+  useEffect(() => {
+    console.log("idleEvent", idleEvent);
+  }, [idleEvent]);
   useEffect(() => {
     if (merchantData.isSuccess) {
       dispatch(setMerchantsData(merchantData.data));
     }
   }, [merchantData]);
+
   useEffect(() => {
     if (location.pathname === "/cart") {
       setPageHeading("Корзина");
@@ -134,8 +147,7 @@ export const Root = () => {
       setPageHeading(currentFilter.categoryName);
     }
   }, [currentFilter.category, location]);
- 
-  
+
   useEffect(() => {
     if (
       totalPrice === 0 ||
@@ -145,6 +157,7 @@ export const Root = () => {
       setButtonDisabled(true);
     } else setButtonDisabled(false);
   }, [buyStatus, totalPrice]);
+
   useEffect(() => {
     const handleScreenStatus = () => {
       // Emit current idle status
@@ -166,23 +179,37 @@ export const Root = () => {
   }, [isIdleOpen]); // Add `isIdleOpen` as a dependency to ensure the correct value is emitted
 
   useEffect(() => {
-    const handleKeyPress = (event) => {
-      if (event.key === "Enter") {
-        barCodeHandler(barcode);
-        barcode = "";
-        return;
-      }
-      if (event.type === "keypress" || event.type === "keydown") {
-        barcode += event.key;
-      }
-    };
+    if (!merchantData.isSingleMerchant && !merchantData.useVATbyDefault) {
+      setMerchant("both");
+    }
+    if (merchantData.isSingleMerchant && !merchantData.useVATbyDefault) {
+      setMerchant("nonVAT");
+    }
+    if (merchantData.isSingleMerchant && merchantData.useVATbyDefault) {
+      setMerchant("VAT");
+    }
+  }, [merchantData]);
 
+  const handleKeyPress = (event) => {
+    console.log("event", event);
+    if (event.key === "Enter") {
+      barCodeHandler(barcode);
+      barcode = "";
+      return;
+    }
+    if (event.type === "keypress" || event.type === "keydown") {
+      barcode += event.key;
+    }
+  };
+
+  useEffect(() => {
     // Attach keypress or keydown listener
     document.addEventListener("keypress", handleKeyPress);
-
+    console.log("Attach keypress or keydown listener");
     // Clean up listener on unmount
     return () => {
       document.removeEventListener("keypress", handleKeyPress);
+      console.log("Clean up listener on unmount");
     };
   }, []);
   useEffect(() => {
@@ -195,6 +222,7 @@ export const Root = () => {
     }
   }, [cartProducts]);
   const barCodeHandler = (code) => {
+    console.log("barCodeHandler code", code);
     setNoProdError(false);
     setSearchBarcode(code);
 
@@ -214,14 +242,19 @@ export const Root = () => {
       setSkip(false);
     }
   }, [searchBarcode]);
+
   useEffect(() => {
     if (singleProduct.isError) {
       setNoProdError(true);
       setTimeout(() => {
         setNoProdError(false);
-      }, 200000);
+      }, 2000);
     }
     if (singleProduct.isSuccess && singleProduct.status === "fulfilled") {
+      dispatch(setShowAddProductsConfirm(true));
+      setTimeout(() => {
+       dispatch(setShowAddProductsConfirm(false));
+      }, 1000);
       let discount = 0;
       let priceDecrement = 0;
       let newPrice = 0;
@@ -255,15 +288,41 @@ export const Root = () => {
 
         priceDecrement = (regularPrice - calculatedNewPrice).toFixed(2);
       }
+
       dispatch(
         addToCart({
-          ...singleProduct.currentData.product,
-          inCartQuantity: 1,
-          priceDecrement,
-          priceAfterDiscount: newPrice,
-          hasLowerPrice,
+          product: {
+            ...singleProduct.currentData.product,
+            inCartQuantity: 1,
+            priceDecrement,
+            priceAfterDiscount: newPrice,
+            hasLowerPrice,
+            merchant,
+            discountValue: discount,
+          },
+          taxData: {
+            useVATbyDefault: merchantData.useVATbyDefault,
+            isSingleMerchant: merchantData.isSingleMerchant,
+          },
         })
       );
+
+      /*{
+          product: {
+            ...product,
+            inCartQuantity: 1,
+            priceDecrement,
+            priceAfterDiscount: newPrice,
+            hasLowerPrice,
+            merchant,
+            discountValue
+          },
+          taxData: {
+            useVATbyDefault,
+            isSingleMerchant,
+          },
+        }*/
+
       setSearchBarcode("");
       setSkip(true);
     }
@@ -354,6 +413,7 @@ export const Root = () => {
         <div className="container">
           {terminalStatus.status === "offline" && <NoTerminalCover />}
           <NoProduct showNoProdError={showNoProdError} />
+          <AddProductConfirm showConfirm={showAddConfirm} />
           <SearchResultsPopup />
           <IdleWindow isOpen={isIdleOpen} onClose={handleIdleClose} />
           <NotifyWindow

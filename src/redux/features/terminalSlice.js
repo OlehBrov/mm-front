@@ -1,7 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-
-
 const terminalSlice = createSlice({
     name: 'terminalState',
     initialState: {status:"offline"},

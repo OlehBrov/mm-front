@@ -29,6 +29,7 @@ export const FilterBar = ({ hasNewProducts }) => {
               category: 0,
               subcategory: 0,
               categoryName: "",
+              division: 0,
             })
           }
           checked={filter.category === 0}
@@ -45,7 +46,7 @@ export const FilterBar = ({ hasNewProducts }) => {
           <span className="filter-label-text">Головна</span>
         </label>
       </li>
-      <li className={`filter-item ${hasNewProducts ? "" : "invisible"}`} id="new">
+      <li className={`filter-item `} id="new">
         <input
           type="radio"
           name="product-categories"
@@ -88,6 +89,7 @@ export const FilterBar = ({ hasNewProducts }) => {
                   category: el.categoryId,
                   subcategory: 0,
                   categoryName: el.categoryName,
+                  division: 0
                 })
               }
               checked={filter.category === el.categoryId}

@@ -13,11 +13,12 @@ import { ProductCard } from "./ProductCard";
 import QRCode from "react-qr-code";
 
 export const IdleWindow = ({ isOpen, onClose }) => {
-  const currentFilter = useSelector(selectFilter);
-  const [onSaleProducts, setOnSaleProducts] = useState([]);
+
   const { isLoading, isSuccess, isError, data, error } =
     useGetStoreSaleProductsQuery();
-
+  useEffect(() => {
+  console.log("IdleWindow data", data);
+}, [data])
   if (!isOpen) {
     return null; // Do not render anything if the modal is closed
   }
@@ -37,7 +38,7 @@ export const IdleWindow = ({ isOpen, onClose }) => {
           <div className="idle-circle idle-circle-3" />
           <div className="light-shadow" />
         </div>
-        <div className="portal-content">
+        <div className={`portal-content ${!data.products.length ? 'no-slider' : ''}`}>
           {!data.products.length && ( // shoud be  !data.products.length
             <div className="no-sale-idle-logo-wrapper">
               <p className="screen-saver-logo">

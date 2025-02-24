@@ -3,15 +3,15 @@ import authorizationReducer from "./features/authSlice";
 import categoriesReducer from "./features/categorySlice";
 import filterReducer from "./features/filterSlice";
 import cartReducer from "./features/cartSlice";
-import productsReducer from "./features/productsSlice";
+import showAddConfirmReducer from "./features/showAddConfirmSlice";
 import searchReducer from "./features/searchSlice";
 import detailedProductReducer from "./features/detailedProductSlice";
 import selectedQuantityReducer from "./features/selectedQuantitySlice";
-import subcategoriesReducer from "./features/subcategoriesSlice"
-import recieptReducer from './features/recieptSlice';
-import buyStatusReducer from './features/buyStatus';
-import terminalStateReducer from './features/terminalSlice'
-import merchantReducer from './features/merchantsSlice'
+import subcategoriesReducer from "./features/subcategoriesSlice";
+import recieptReducer from "./features/recieptSlice";
+import buyStatusReducer from "./features/buyStatus";
+import terminalStateReducer from "./features/terminalSlice";
+import merchantReducer from "./features/merchantsSlice";
 
 import { storeApi } from "../api/storeApi";
 import {
@@ -41,7 +41,7 @@ export const store = configureStore({
     cart: cartReducer,
     authLocal: persistedauthorizationReducer,
     [storeApi.reducerPath]: storeApi.reducer,
-    products: productsReducer,
+    showAddConfirm: showAddConfirmReducer,
     search: searchReducer,
     detailedProduct: detailedProductReducer,
     selectedQuantity: selectedQuantityReducer,
@@ -50,7 +50,6 @@ export const store = configureStore({
     buyStatus: buyStatusReducer,
     terminalState: terminalStateReducer,
     merchant: merchantReducer,
-
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

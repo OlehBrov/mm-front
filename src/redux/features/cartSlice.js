@@ -29,8 +29,6 @@ export const cartSlice = createSlice({
         const { product, taxData } = action.payload;
         
         if (!state.separatePayment && state.cartProducts.length > 0) {
-          console.log('state.cartProducts[state.cartProducts.length - 1].is_VAT_Excise', state.cartProducts[state.cartProducts.length - 1].is_VAT_Excise)
-          console.log(' product.is_VAT_Excise',  product.is_VAT_Excise)
           state.separatePayment =
             state.cartProducts[state.cartProducts.length - 1].is_VAT_Excise !==
             product.is_VAT_Excise;
@@ -488,6 +486,7 @@ export const cartSlice = createSlice({
           .toFixed(2);
       } else {
         state.cartTotalSum = 0;
+        
       }
     },
     // setProductCount: (state, action) => {
@@ -532,6 +531,7 @@ export const cartSlice = createSlice({
     clearCart: (state) => {
       state.cartProducts = [];
       state.cartTotalSum = 0;
+      state.separatePayment = false;
       // state.taxes = {
       //   withVATTotalSum: 0,
       //   noVATTotalSum: 0,

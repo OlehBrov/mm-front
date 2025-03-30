@@ -2,19 +2,27 @@ import React, { useEffect, useState } from "react";
 import SlotCounter from "react-slot-counter";
 import { CartLink } from "./CartLink";
 import { useDispatch, useSelector } from "react-redux";
-import { selectCartTotalSum } from "../redux/selectors/selectors";
+import { selectCartTotalSum, selectNotify } from "../redux/selectors/selectors";
 import { Link } from "react-router-dom";
 import { clearCart } from "../redux/features/cartSlice";
+import { setPromptBeforeIdle } from "../redux/features/notifySlice";
 
 export const FooterCartSection = () => {
   const totalSum = useSelector(selectCartTotalSum);
-
+const { promptBeforeIdle } = useSelector(selectNotify);
   const dispatch = useDispatch();
   const clearCartHandler = (e) => {
     e.preventDefault();
     dispatch(clearCart());
   };
+  useEffect(() => {
+    if (totalSum > 0 && promptBeforeIdle === 0) {
+      dispatch(setPromptBeforeIdle(30000));
+    } else if (totalSum === 0) {
+      dispatch(setPromptBeforeIdle(0));
+    }
 
+  }, [dispatch, promptBeforeIdle, totalSum]);
   return (
     <div className="footer-cart-wrapper">
       <div className="footer-cart-counter-wrap">

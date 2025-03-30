@@ -78,7 +78,8 @@ footer {
   font-weight: 700;
   line-height: 100%;
 }
-.counter-text {
+.counter-wrap p {
+  font-weight: 900;
 }
 .footer-cart-link {
   padding: 20px 50px;
@@ -86,7 +87,7 @@ footer {
   // box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
   color: #000000;
   text-align: center;
-  border: 3px solid rgba(0, 0, 0, 0.07);
+  border: 1px solid rgba(0, 0, 0, 0.2);
   font-size: 18px;
   font-style: normal;
   font-weight: 600;
@@ -126,7 +127,7 @@ footer {
   padding: 20px 50px;
   border-radius: 5px;
   justify-content: center;
-  border: 3px solid rgba(0, 0, 0, 0.07);
+  border: 1px solid rgba(0, 0, 0, 0.2);
   font-size: 20px;
   font-style: normal;
   font-weight: 600;
@@ -147,8 +148,8 @@ footer {
 
 .footer-counter-filled-btn {
   color: #fff;
-  background-color: var(--text-color-main);
-  border: 1px solid var(--text-color-main);
+  background-color: var(--main-color-yellow);
+  border: 1px solid var(--main-color-yellow);
 }
 
 .disabled-btn {

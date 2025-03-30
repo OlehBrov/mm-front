@@ -11,10 +11,8 @@ export const filterSlice = createSlice({
   },
   reducers: {
     setFilter: (state, action) => {
-      console.log("action.payload", action.payload);
-
-      const { name, category, subcategory } = action.payload;
-
+      const prevDivision = state.division;
+      const { name, category, subcategory, categoryName, division } = action.payload;
       // If the new subcategory is 0, reset the array to [0]
       if (subcategory === 0) {
         return {
@@ -22,36 +20,43 @@ export const filterSlice = createSlice({
           name,
           category,
           subcategory: [0], // Reset to default
-          categoryName: name,
+          categoryName,
           division: 0,
         };
       }
-
-      // Otherwise, we need to update the subcategory array
-      let updatedSubcategories = state.subcategory.filter((sc) => sc !== 0); // Remove 0 if exists
-      const subcatIndex = updatedSubcategories.indexOf(subcategory);
-
-      if (subcatIndex !== -1) {
-        // If already exists, remove it (toggle behavior)
-        updatedSubcategories.splice(subcatIndex, 1);
+      const shouldUpdateOnlyDivision = prevDivision !== division;
+      if (shouldUpdateOnlyDivision) {
+        return {
+          ...state,
+          division: division,
+        };
       } else {
-        // Otherwise, add the new subcategory
-        updatedSubcategories.push(subcategory);
-      }
+        // Otherwise, we need to update the subcategory array
+        let updatedSubcategories = state.subcategory.filter((sc) => sc !== 0); // Remove 0 if exists
+        const subcatIndex = updatedSubcategories.indexOf(subcategory);
 
-      // If no subcategories remain, reset to [0]
-      if (updatedSubcategories.length === 0) {
-        updatedSubcategories = [0];
-      }
+        if (subcatIndex !== -1) {
+          // If already exists, remove it (toggle behavior)
+          updatedSubcategories.splice(subcatIndex, 1);
+        } else {
+          // Otherwise, add the new subcategory
+          updatedSubcategories.push(subcategory);
+        }
 
-      return {
-        ...state,
-        name,
-        category,
-        subcategory: updatedSubcategories,
-        categoryName: name,
-        division: 0,
-      };
+        // If no subcategories remain, reset to [0]
+        if (updatedSubcategories.length === 0) {
+          updatedSubcategories = [0];
+        }
+
+        return {
+          ...state,
+          name,
+          category,
+          subcategory: updatedSubcategories,
+          categoryName: name,
+          division: division,
+        };
+      }
     },
 
     clearFilter: (state, action) => {

@@ -3,13 +3,18 @@ import { FooterCartSection } from "./FooterCartSection";
 import { useLocation } from "react-router-dom";
 import { FooterCartCountSection } from "./FooterCartCountSection";
 
-export const Footer = () => {
+export const Footer = ({timerPause, timerReset}) => {
     const location = useLocation()
     const cartLocation = location.pathname === "/cart"
   return (
     <footer>
       {!cartLocation && <FooterCartSection />}
-      {cartLocation && <FooterCartCountSection />}
+      {cartLocation && (
+        <FooterCartCountSection
+          timerPause={timerPause}
+          timerReset={timerReset}
+        />
+      )}
       <div className="footer-contacts-grid">
         <div className="footer-grid-item">
           <p>Гаряча лінія</p>

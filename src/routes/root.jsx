@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../redux/store";
 import { IdleTimerProvider, useIdleTimer } from "react-idle-timer";
@@ -7,21 +7,19 @@ import {
   selectAuthorization,
   selectBuyStatus,
   selectCartProducts,
+  selectCartTotalSum,
   selectFilter,
-  selectMerchant,
-  selectProducts,
-  selectSearch,
-  selectShowConfirm,
-  selectTerminalState,
+  selectNotify,
+selectTerminalState,
 } from "../redux/selectors/selectors";
 import { addToCart, clearCart } from "../redux/features/cartSlice";
 import { io } from "socket.io-client";
 import {
   setNavigate,
   storeApi,
+  useCancelBuyProductsMutation,
   useGetMerchantDataQuery,
   useGetSingleProductQuery,
-  useSearchProductsQuery,
 } from "../api/storeApi";
 import { NoTerminalCover } from "../components/NoTerminalCover";
 import { IdleWindow } from "../components/IdleWindow";
@@ -39,9 +37,19 @@ import {
 import { NoProduct } from "../components/NoProduct";
 import { setTerminalState } from "../redux/features/terminalSlice";
 import { setMerchantsData } from "../redux/features/merchantsSlice";
-import { setPaymentCount } from "../redux/features/buyStatus.js";
+import { clearBuyStatus, setPaymentCount } from "../redux/features/buyStatus.js";
 import { AddProductConfirm } from "../components/AddProductConfirm.jsx";
-import { setShowAddProductsConfirm, setShowConfirm } from "../redux/features/showAddConfirmSlice.js";
+import {
+  setShowAddProductsConfirm,
+  setShowConfirm,
+} from "../redux/features/showAddConfirmSlice.js";
+import {
+  setIdleOpenChecking,
+  setIsIdleOpen,
+  setIsNotifyOpen,
+  setNoProdError,
+} from "../redux/features/notifySlice.js";
+import { BuyError } from "../components/BuyError.jsx";
 
 const auth_id = 998877;
 // console.log("Connecting with store_id:", auth_id);
@@ -86,54 +94,55 @@ socket.on("twoPurchases", () => {
 });
 
 export const Root = () => {
-  const [isNotifyOpen, setIsNotifyOpen] = useState(false);
-  const [isIdleOpen, setIsIdleOpen] = useState(false);
-  const [idleOpenChecking, setIdleOpenChecking] = useState(false);
-
   const [pageHeading, setPageHeading] = useState("Каталог продуктів");
-  const [totalPrice, setTotalPrice] = useState(0);
   const [idleEvent, setIdleEvent] = useState(events);
-  const [skip, setSkip] = useState(true);
 
-  const [searchBarcode, setSearchBarcode] = useState("");
-  const [showNoProdError, setNoProdError] = useState(false);
-  // const [showAddConfirm, setShowConfirm] = useState(false);
+  const [searchBarcode, setSearchBarcode] = useState(null);
+
   const [merchant, setMerchant] = useState(null);
-
   const terminalStatus = useSelector(selectTerminalState);
-  const localProducts = useSelector(selectProducts);
   const cartProducts = useSelector(selectCartProducts);
   const currentFilter = useSelector(selectFilter);
   const buyStatus = useSelector(selectBuyStatus);
-  const showAddConfirm = useSelector(selectShowConfirm);
-
+  const totalPrice = useSelector(selectCartTotalSum);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const {
+    isNotifyOpen,
+    isIdleOpen,
+    idleOpenChecking,
+    timeout,
+    promptBeforeIdle,
+  } = useSelector(selectNotify);
+
   let barcode = "";
 
-  const idleTimeout = 60000;
-  const notifyTimeout = 30000;
-  const notifyProgressMax = (idleTimeout - notifyTimeout) / 1000;
+
 
   const singleProduct = useGetSingleProductQuery(
     { barcode: searchBarcode },
     {
-      skip,
+      skip: !searchBarcode,
+      refetchOnMountOrArgChange: true,
     }
   );
 
+  const [cancelFunction, cancelData] = useCancelBuyProductsMutation();
+  useEffect(() => {
+    console.log("singleProduct", singleProduct);
+  }, [singleProduct]);
   const merchantData = useGetMerchantDataQuery();
   useEffect(() => {
     setNavigate(navigate);
   }, [navigate]);
 
   useEffect(() => {
-    console.log("idleEvent", idleEvent);
-  }, [idleEvent]);
-  useEffect(() => {
+     console.log("merchantData", merchantData);
     if (merchantData.isSuccess) {
+     console.log("merchantData", merchantData);
       dispatch(setMerchantsData(merchantData.data));
     }
   }, [merchantData]);
@@ -149,6 +158,7 @@ export const Root = () => {
   }, [currentFilter.category, location]);
 
   useEffect(() => {
+    console.log('root buyStatus', buyStatus)
     if (
       totalPrice === 0 ||
       buyStatus.status === "fetching" ||
@@ -160,10 +170,11 @@ export const Root = () => {
 
   useEffect(() => {
     const handleScreenStatus = () => {
+      console.log("handleScreenStatus listener");
       // Emit current idle status
       socket.emit("idle-status", { isIdleOpen });
 
-      if (!isIdleOpen && !isIdleOpen) setIdleOpenChecking(true);
+      if (!isIdleOpen) dispatch(setIdleOpenChecking(true));
     };
 
     // Attach the listener
@@ -194,7 +205,7 @@ export const Root = () => {
     console.log("event", event);
     if (event.key === "Enter") {
       barCodeHandler(barcode);
-      barcode = "";
+
       return;
     }
     if (event.type === "keypress" || event.type === "keydown") {
@@ -212,48 +223,58 @@ export const Root = () => {
       console.log("Clean up listener on unmount");
     };
   }, []);
-  useEffect(() => {
-    if (cartProducts) {
-      setTotalPrice(
-        cartProducts?.reduce((acc, item) => {
-          return acc + item.product_price * item.inCartQuantity;
-        }, 0)
-      );
-    }
-  }, [cartProducts]);
+
+
+  const handleIdleClose = () => {
+    console.log("handleIdleClose invoked");
+    dispatch(setIsIdleOpen(false));
+    setIdleEvent(events);
+    dispatch(clearBuyStatus());
+    navigate("/products");
+  };
+
+
   const barCodeHandler = (code) => {
-    console.log("barCodeHandler code", code);
-    setNoProdError(false);
+    if (isIdleOpen) {
+      console.log("isIdleOpen in barCodeHandler", isIdleOpen);
+      handleIdleClose();
+    }
+    const latestIsIdleOpen = store.getState().notify.isIdleOpen;
+    const latestIsNotify = store.getState().notify.isNotifyOpen;
+    if (latestIsNotify) dispatch(setIsNotifyOpen(false));
+    if (latestIsIdleOpen) dispatch(setIsIdleOpen(false));
+
     setSearchBarcode(code);
 
-    // const foundProduct = await localProducts.find(
-    //   (item) => item.product.barcode.toString() === code
-    // );
-    // if (!foundProduct) return console.log("No such product found");
-    // console.log("foundProduct", foundProduct);
-    // await dispatch(addToCart(foundProduct.product));
-    // if (location !== "/cart") navigate("/cart");
-    setIsIdleOpen(false);
     setIdleEvent(events);
+    // setSkip(false);
+    barcode = "";
   };
 
   useEffect(() => {
-    if (searchBarcode) {
-      setSkip(false);
-    }
-  }, [searchBarcode]);
+    if (singleProduct?.isFetching) return;
+    if (singleProduct?.error) {
+      dispatch(setNoProdError(true));
 
-  useEffect(() => {
-    if (singleProduct.isError) {
-      setNoProdError(true);
       setTimeout(() => {
-        setNoProdError(false);
+        dispatch(setNoProdError(false));
+        setSearchBarcode(null);
       }, 2000);
     }
-    if (singleProduct.isSuccess && singleProduct.status === "fulfilled") {
-      dispatch(setShowAddProductsConfirm(true));
+    if (singleProduct?.isSuccess && singleProduct?.status === "fulfilled") {
+      dispatch(
+        setShowAddProductsConfirm({
+          show: true,
+          product: singleProduct.currentData.product,
+        })
+      );
       setTimeout(() => {
-       dispatch(setShowAddProductsConfirm(false));
+        dispatch(
+          setShowAddProductsConfirm({
+            show: false,
+            product: null,
+          })
+        );
       }, 1000);
       let discount = 0;
       let priceDecrement = 0;
@@ -306,128 +327,161 @@ export const Root = () => {
           },
         })
       );
-
-      /*{
-          product: {
-            ...product,
-            inCartQuantity: 1,
-            priceDecrement,
-            priceAfterDiscount: newPrice,
-            hasLowerPrice,
-            merchant,
-            discountValue
-          },
-          taxData: {
-            useVATbyDefault,
-            isSingleMerchant,
-          },
-        }*/
-
-      setSearchBarcode("");
-      setSkip(true);
+      setSearchBarcode(null);
     }
+
+    // Reset searchBarcode for future scans
+    // setSkip(true);
+    setSearchBarcode(null);
   }, [singleProduct]);
-  const onPrompt = () => {
-    if (cartProducts.length > 0) {
-      setIsNotifyOpen(true);
-    } else {
-      setIsIdleOpen(true);
-    }
-    setIdleEvent("none");
-  };
-  const onIdle = () => {
-    if (isNotifyOpen) {
-      setIsIdleOpen(true); // Show IdleWindow after NotifyWindow times out
-      dispatch(clearCart()); // Clear cart if going to Idle
-      setIsNotifyOpen(false);
-    } else {
-      setIsIdleOpen(true);
-    }
-    setIdleEvent("none");
-  };
-  const onActive = () => {
-    setIsNotifyOpen(false);
-    setIsIdleOpen(false);
-    navigate("/products");
-    setIdleEvent(events);
-  };
 
+  // const onIdle = () => {
+  //   console.log("onIdle invoked");
+  //   if (isNotifyOpen) {
+  //     dispatch(setIsIdleOpen(true)); // Show IdleWindow after NotifyWindow times out
+  //     dispatch(clearCart()); // Clear cart if going to Idle
+  //     dispatch(setIsNotifyOpen(false));
+  //   } else {
+  //     dispatch(setIsIdleOpen(true));
+  //   }
+  //   setIdleEvent("keydown");
+  // };
+  // const onActive = () => {
+  //   console.log("onActive invoked");
+  //   dispatch(setIsNotifyOpen(false));
+  //   dispatch(setIsIdleOpen(false));
+  //   navigate("/products");
+  //   setIdleEvent(events);
+  // };
+  const { getRemainingTime, start, reset, pause, resume } = useIdleTimer({
+    
+    timeout: timeout,
+    promptBeforeIdle: promptBeforeIdle,
+    events: idleEvent,
+    onPresenceChange: (presence) => {
+      console.log('presence', presence)
+    },
+    onPrompt: () => {
+      console.log("🔔 onPrompt fired");
+
+        dispatch(setIsNotifyOpen(true));
+     
+    },
+    onIdle: () => {
+      console.log("💤 onIdle triggered");
+      dispatch(clearCart());
+      dispatch(clearBuyStatus());
+      dispatch(setIsNotifyOpen(false));
+      dispatch(setIsIdleOpen(true));
+      navigate("/products");
+      pause(); // stop further timer activity
+    },
+    onActive: () => {
+      console.log("🟢 onActive");
+      dispatch(setIsIdleOpen(false));
+      dispatch(setIsNotifyOpen(false));
+      resume();
+      navigate("/products");
+    },
+    debounce: 500, // optional but helps avoid rapid firing
+  });
   const handleNewUser = () => {
+    console.log("handleNewUser invoked");
     dispatch(clearCart());
-    setIsNotifyOpen(false);
+    dispatch(setIsNotifyOpen(false));
+    cancelFunction();
     navigate("/products");
     setIdleEvent(events);
   };
 
   const handlePreviousUser = () => {
-    setIsNotifyOpen(false);
+    console.log("handlePreviousUser invoked");
+
+    dispatch(setIsNotifyOpen(false));
     setIdleEvent(events);
   };
 
-  const handleIdleClose = () => {
-    setIsIdleOpen(false);
-    setIdleEvent(events);
-    navigate("/products");
-  };
+
   const handeNotifyClose = () => {
-    setIsNotifyOpen(false);
+    console.log("handeNotifyClose invoked");
+    dispatch(setIsNotifyOpen(false));
     setIdleEvent(events);
   };
   const clearCartHandler = () => {
     dispatch(clearCart());
   };
+  // const handleTimerEnd = useCallback(() => {
+  //   console.log("onTimerEnd");
+  //   dispatch(setIsNotifyOpen(false));
+  //   cancelFunction();
+  //   clearCartHandler();
+  //   dispatch(setIsIdleOpen(true));
+  // }, [cancelFunction, dispatch]);
 
+  const handleTimerEnd = () => {
+    console.log("handleTimerEnd onTimerEnd");
+    dispatch(setIsNotifyOpen(false));
+    cancelFunction();
+    clearCartHandler();
+    dispatch(setIsIdleOpen(true));
+  }
   return (
-    <IdleTimerProvider
-      timeout={idleTimeout}
-      promptBeforeIdle={notifyTimeout}
-      onPrompt={onPrompt}
-      onIdle={onIdle}
-      onActive={onActive}
-      events={idleEvent}
-    >
-      <div className="clicker">
-        <header>
-          <div className="header-wrapper">
-            <Link to={"/"} className={`logo ${isIdleOpen ? "centered" : ""}`}>
-              <span className="highlight-logo">NEXT</span>RETAIL
+    // <IdleTimerProvider
+    //   timeout={timeout}
+    //   promptBeforeIdle={promptBeforeIdle}
+    //   onPrompt={onPrompt}
+    //   onIdle={onIdle}
+    //   onActive={onActive}
+    //   events={idleEvent}
+    // >
+    <div className="clicker">
+      <header>
+        <div className="header-wrapper">
+          <Link to={"/"} className={`logo ${isIdleOpen ? "centered" : ""}`}>
+            <span className="highlight-logo">NEXT</span>RETAIL
+          </Link>
+          {!isIdleOpen && <h1 className="page-heading">{pageHeading}</h1>}
+          {!isNotifyOpen && location.pathname === "/cart" && (
+            <Link
+              onClick={clearCartHandler}
+              className={`footer-cart-link on-header-cart-link footer-cancel-link ${
+                buttonDisabled && "link-disabled"
+              }`}
+            >
+              Скасувати
             </Link>
-            {!isIdleOpen && <h1 className="page-heading">{pageHeading}</h1>}
-            {!isNotifyOpen && location.pathname === "/cart" && (
-              <Link
-                onClick={clearCartHandler}
-                className={`footer-cart-link on-header-cart-link footer-cancel-link ${
-                  buttonDisabled && "link-disabled"
-                }`}
-              >
-                Скасувати
-              </Link>
-            )}
-            {/* <>
+          )}
+          {/* <>
               {" "}
               {!isOpenNotify && <SearchInput />}
               {!isOpenNotify && <CartLink />}
             </> */}
-          </div>
-        </header>
-        <div className="container">
-          {terminalStatus.status === "offline" && <NoTerminalCover />}
-          <NoProduct showNoProdError={showNoProdError} />
-          <AddProductConfirm showConfirm={showAddConfirm} />
-          <SearchResultsPopup />
-          <IdleWindow isOpen={isIdleOpen} onClose={handleIdleClose} />
-          <NotifyWindow
-            isOpen={isNotifyOpen}
-            onClose={handeNotifyClose}
-            onNewUser={handleNewUser}
-            onPreviousUser={handlePreviousUser}
-            onTimerEnd={() => setIsIdleOpen(true)}
-            notifyProgressMax={notifyTimeout}
-          />
-          <Outlet />
         </div>
-        <Footer />
+      </header>
+      <div className="container">
+        {terminalStatus.status === "offline" && <NoTerminalCover />}
+        <NoProduct />
+        <AddProductConfirm />
+        <SearchResultsPopup />
+        <IdleWindow onClose={handleIdleClose} />
+        <NotifyWindow
+          isOpen={isNotifyOpen}
+          onClose={handeNotifyClose}
+          onTimerEnd={handleTimerEnd}
+          onNewUser={handleNewUser}
+          onPreviousUser={handlePreviousUser}
+          getRemainingTime={getRemainingTime}
+          promptBeforeIdle={promptBeforeIdle}
+          timeout={timeout}
+        />
+        {buyStatus.status === "error" && <BuyError/>}
+        <Outlet />
       </div>
-    </IdleTimerProvider>
+      <Footer
+        timerReset={reset}
+        timerPause={pause}
+      />
+    </div>
+    // </IdleTimerProvider>
   );
 };

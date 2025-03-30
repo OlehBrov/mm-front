@@ -1,9 +1,22 @@
-export const AddProductConfirm = ({ showConfirm }) => {
+import { useSelector } from "react-redux";
+import { selectShowConfirm } from "../redux/selectors/selectors";
+
+export const AddProductConfirm = () => {
+
+  const showAddConfirm = useSelector(selectShowConfirm);
+  if(showAddConfirm.show){
   return (
-    <div className={`error-wrapper ${showConfirm ? "error-visible" : ""}`}>
+    <div
+      className={`error-wrapper ${showAddConfirm.show ? "error-visible" : ""}`}
+    >
       <div className="error-text-container">
-        <h1>Товар додано</h1>
+        <div className="confirm-img-wrapper">
+          <img src={showAddConfirm.product?.product_image} alt="" />
+        </div>
+        <h1 style={{ fontSize: "50px" }}>
+          {showAddConfirm.product?.product_name} додано
+        </h1>
       </div>
     </div>
-  );
+  );}
 };

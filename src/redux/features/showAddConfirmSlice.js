@@ -3,7 +3,10 @@ import { createSlice } from "@reduxjs/toolkit";
 
 export const showAddConfirmSlice = createSlice({
   name: "showAddConfirm",
-  initialState: false,
+  initialState: {
+    show: false,
+    product: null
+  },
   reducers: {
     setShowAddProductsConfirm: (state, action) => {
       return (state = action.payload);

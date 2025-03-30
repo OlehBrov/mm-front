@@ -179,14 +179,15 @@ export const storeApi = createApi({
       providesTags: ["Auth"],
     }),
     getAllProducts: build.query({
-      query: ({ page, size, filter, subcategory }) => {
-        console.log("filter", filter);
-        console.log("subcategory", subcategory);
-        return({
-        url: "/products",
-        method: "GET",
-        params: { page, size, filter, subcategory },
-      })},
+      query: ({ page, size, filter, subcategory, division }) => {
+        console.log("getAllProducts division", division);
+
+        return {
+          url: "/products",
+          method: "GET",
+          params: { page, size, filter, subcategory, division },
+        };
+      },
       providesTags: ["Products"],
     }),
     getSingleProduct: build.query({
@@ -195,6 +196,13 @@ export const storeApi = createApi({
         method: "GET",
         params: { barcode },
       }),
+      transformResponse: (response) => response, // Normal response
+      transformErrorResponse: (response) => {
+        if (response.status === 404) {
+          return { error: "Product not found" }; // Custom error message
+        }
+        return response;
+      },
       providesTags: ["Products"],
     }),
     getProductById: build.query({
@@ -208,8 +216,8 @@ export const storeApi = createApi({
     getStoreSaleProducts: build.query({
       query: () => ({
         url: "/config/store-sale",
-        method: "GET"
-      })
+        method: "GET",
+      }),
     }),
     buyProducts: build.mutation({
       query: (products) => ({

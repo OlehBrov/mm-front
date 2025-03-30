@@ -46,7 +46,7 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "dev": "cross-env NODE_OPTIONS='' concurrently \"npm run start\" \"npm run electron-start\"",
-    "electron-start": "wait-on http://localhost:3000 && npm run electron-dev",
+    "electron-start": "wait-on http://localhost:3005 && npm run electron-dev",
     "electron-dev": "electronmon ./electron",
     "package": "electron-forge package",
     "make": "electron-forge make"

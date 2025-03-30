@@ -11,7 +11,6 @@
 @import "./styles/notify";
 @import "./styles/reciept";
 
-
 @font-face {
   font-family: "Fixel";
   src: url("../public/fonts/FixelDisplay-Regular.woff2") format("woff2");
@@ -52,11 +51,13 @@
   font-style: normal;
   /* Normal style */
 }
-:root{
+:root {
   --text-color-main: #292929;
   --main-color-yellow: #ffbc0d;
 }
-*, ::after, ::before {
+*,
+::after,
+::before {
   box-sizing: border-box;
 }
 #root {
@@ -108,7 +109,7 @@ img {
   height: 100%;
   object-fit: cover;
 }
-.no-terminal-cover{
+.no-terminal-cover {
   position: absolute;
   z-index: 9999;
   inset: 0;
@@ -118,19 +119,19 @@ img {
   align-items: center;
   justify-content: center;
 }
-.loader-wrapper{
+.loader-wrapper {
   display: flex;
   flex-direction: column;
   gap: 30px;
   align-items: center;
 }
-.loader-text-wrap{
+.loader-text-wrap {
   background-color: #fff;
   padding: 28px;
   border-radius: 28px;
   border: 1px solid #0000004c;
 }
-.loader-text{
+.loader-text {
   font-size: 38px;
   text-transform: uppercase;
 }
@@ -139,12 +140,9 @@ img {
 
   display: flex;
   width: 100%;
-height: 100%;
+  height: 100%;
   position: relative;
 }
-
-
-
 
 .clicker {
   height: 100%;
@@ -153,8 +151,6 @@ height: 100%;
   flex-direction: column;
 }
 
-
-
 .filter-list {
   display: flex;
   // gap: 10px;
@@ -162,7 +158,6 @@ height: 100%;
 }
 
 /* CSS */
-
 
 .spinner-container {
   position: absolute;
@@ -175,7 +170,7 @@ height: 100%;
   align-items: center;
   backdrop-filter: blur(10px);
 }
-.error-wrapper{
+.error-wrapper {
   position: absolute;
   inset: 0;
   backdrop-filter: blur(5px) grayscale(70%);
@@ -186,28 +181,43 @@ height: 100%;
   z-index: 1;
 }
 
-.error-visible{
+.error-visible {
   display: flex;
 }
 
-.error-text-container{
+.error-text-container {
   width: 800px;
   aspect-ratio: 1;
   border-radius: 50%;
+  display: flex;
+  flex-direction: column;
   // background: linear-gradient(122deg, #FF6A14 50%, #EF9E00 92.79%);
   background: var(--main-color-yellow);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  & h1{
+  color: #fff;
+  & h1 {
     text-align: center;
+    width: 700px;
   }
+
+  & img{
+    width: 300px;
+    aspect-ratio: 1;
+    display: block;
+    object-fit: cover;
+  }
+}
+
+.confirm-img-wrapper{
+  margin-bottom: 40px;
 }
 //To show react-custom-scrollbars
 ::-webkit-scrollbar {
   visibility: hidden;
 }
-.track-vertical{
+.track-vertical {
   display: block;
 }

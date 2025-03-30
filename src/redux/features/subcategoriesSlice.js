@@ -2,17 +2,22 @@ import { createSlice, nanoid } from "@reduxjs/toolkit";
 
 export const subcategoriesSlice = createSlice({
   name: "subcategories",
-  initialState: [],
+  initialState: {
+    subcategoryList: [],
+    divisions: [
+      { div_id: 8, division_custom_id: 0, division_name: "no division" },
+    ],
+  },
   reducers: {
     setSubcategories: (state, action) => {
-      console.log("setSubcategories action.payload", typeof action.payload);
-
-
-        return state = action.payload
+      state.subcategoryList = action.payload;
+    },
+    setDivisions: (state, action) => {
+      state.divisions = action.payload;
     },
   },
 });
 
-export const { setSubcategories } = subcategoriesSlice.actions;
+export const { setSubcategories, setDivisions } = subcategoriesSlice.actions;
 
 export default subcategoriesSlice.reducer;

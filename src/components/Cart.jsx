@@ -17,6 +17,7 @@ import {
   incrementProductsCount,
   removeFromCart,
 } from "../redux/features/cartSlice";
+
 import { PulseLoader, RiseLoader } from "react-spinners";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,6 +26,7 @@ import { CartProductItem } from "./CartProductItem";
 import Scrollbars from "react-custom-scrollbars-2";
 import { setBuyStatus } from "../redux/features/buyStatus";
 import { socket } from "../routes/root";
+import { CartTimer } from "./CartTimer";
 
 export const Cart = () => {
   const cart = useSelector(selectCart);
@@ -37,6 +39,7 @@ export const Cart = () => {
   const [showLoader, setShowLoader] = useState(false);
   const [showTwoPaysInfo, setShowTwoPaysInfo] = useState(false);
   const [currentPaymentCount, setCurrentPaymentCount] = useState(1);
+
 
   useEffect(() => {
     socket.once("secondPayment", () => {
@@ -67,6 +70,7 @@ export const Cart = () => {
     if (cancelData.isSuccess) setShowLoader(false);
   }, [cancelData]);
   useEffect(() => {
+    console.log("buyStatus", buyStatus);
     if (buyStatus.status === "fetching" || buyStatus.status === "loading") {
       setShowPaymentWaiting(true);
 
@@ -75,7 +79,9 @@ export const Cart = () => {
     if (buyStatus.status === "error") {
       setShowPaymentWaiting(false);
       // setShowPaymentError(true);
-      navigate("/buy-error");
+
+      console.log("buyStatus", buyStatus);
+      
     }
     if (buyStatus.status === "success") navigate("/success");
   }, [buyStatus]);
@@ -91,6 +97,12 @@ export const Cart = () => {
     <div className="cart-container">
       {showPaymentWaiting && (
         <div className="payment-wait-container">
+          <CartTimer
+            start={showPaymentWaiting}
+            cancelFunction={cancelFunction}
+            currentPaymentCount={currentPaymentCount}
+          />
+
           <div className="empty-cart-notification-outer-wrapper">
             <div className="empty-cart-notification-wrapper">
               {cart.separatePayment && (
@@ -159,6 +171,7 @@ export const Cart = () => {
               )}
               style={{ width: "100%", height: "90%" }}
               thumbSize={190}
+              hideTracksWhenNotNeeded={true}
             >
               <div className="cart-list">
                 {cartProducts.map((el) => {

@@ -5,36 +5,52 @@ import SlotCounter from "react-slot-counter";
 
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { useCancelBuyProductsMutation } from "../api/storeApi";
 export const NotifyWindow = ({
   isOpen,
   onNewUser,
   onPreviousUser,
   onTimerEnd,
-  notifyProgressMax,
+    getRemainingTime,
+  timeout,
+  promptBeforeIdle,
 }) => {
-  const { getRemainingTime } = useIdleTimerContext();
-  const [remainingTime, setRemainingTime] = useState(notifyProgressMax);
-
+  // const { getRemainingTime } = useIdleTimerContext();
+  const [remainingTime, setRemainingTime] = useState(promptBeforeIdle / 1000);
   useEffect(() => {
+    console.log("🔄 NotifyWindow mounted or updated");
+    const timeLeftUntilIdle = getRemainingTime();
+    const remainingSeconds = Math.floor(timeLeftUntilIdle / 1000);
+       setRemainingTime(remainingSeconds);
+    return () => console.log("🧹 NotifyWindow cleanup");
+ 
+  }, []);
+  useEffect(() => {
+    if (!isOpen) return;
+    console.log('remainingTime', remainingTime)
+    console.log('promptBeforeIdle', promptBeforeIdle)
+    console.log('promptBeforeIdle / 1000', promptBeforeIdle / 1000)
     const interval = setInterval(() => {
-      setRemainingTime(
-        Math.ceil((getRemainingTime() - notifyProgressMax) / 1000)
-      );
-      if (getRemainingTime() - notifyProgressMax <= 0) {
+      const timeLeftUntilIdle = getRemainingTime();
+      console.log("timeLeftUntilIdle", timeLeftUntilIdle);
+      // const notifyCountdown = timeout - promptBeforeIdle;
+      // const seconds = Math.ceil((timeLeftUntilIdle - notifyCountdown) / 1000);
+const remainingSeconds = Math.floor(timeLeftUntilIdle / 1000);
+      setRemainingTime(remainingSeconds);
+
+      if (remainingTime <= 0) {
         clearInterval(interval);
         onTimerEnd();
       }
-      // console.log("getRemainingTime()", getRemainingTime());
-      // console.log("notifyProgressMax", notifyProgressMax);
     }, 500);
 
     return () => clearInterval(interval);
-  }, [getRemainingTime, onTimerEnd]);
+  }, [isOpen, getRemainingTime, onTimerEnd, remainingTime, promptBeforeIdle]);
 
   if (!isOpen) return null;
 
-  const seconds = Math.floor(remainingTime);
-  console.log("seconds", seconds);
+  // const seconds = Math.floor(remainingTime);
+  // console.log("seconds", seconds);
   return ReactDOM.createPortal(
     <div className="portal-overlay">
       <div className="portal-content notify">
@@ -43,7 +59,7 @@ export const NotifyWindow = ({
             <div className="circular-progressbar">
               <CircularProgressbarWithChildren
                 minValue={0}
-                maxValue={notifyProgressMax / 1000}
+                maxValue={promptBeforeIdle / 1000}
                 value={remainingTime}
                 strokeWidth={2}
                 styles={{
@@ -52,7 +68,7 @@ export const NotifyWindow = ({
                   },
                   path: {
                     stroke: `rgba(255, 106, 20, ${
-                      notifyProgressMax / 1000 / 100
+                      promptBeforeIdle / 1000 / 100
                     })`,
                   },
                   trail: {

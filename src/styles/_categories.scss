@@ -4,7 +4,7 @@
 .filter-item {
   display: flex;
   &:nth-child(2) {
-    margin-bottom: 80px;
+    margin-bottom: 110px;
     & .filter-label {
       padding: 30px 20px;
     }
@@ -83,18 +83,22 @@ box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.07);
   box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
 }
-.filter-radio:checked + .filter-label .filter-label-text {
-  font-weight: 900;
-  text-shadow: 1px 2px rgba(0, 0, 0, 0.6);
-}
-.filter-radio:checked + .filter-label .filter-label-text::after {
-  opacity: 1;
-}
+
 .filter-label-text {
   position: relative;
   font-size: 24px;
   font-weight: 500;
 }
+
+
+.filter-radio:checked + .filter-label .filter-label-text {
+  font-weight: 900;
+  // text-shadow: 1px 2px rgba(0, 0, 0, 0.6);
+}
+.filter-radio:checked + .filter-label .filter-label-text::after {
+  opacity: 1;
+}
+
 .filter-label-text::after {
   content: "";
   position: absolute;

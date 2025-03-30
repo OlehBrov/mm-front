@@ -21,7 +21,7 @@ import { setBuyStatus } from "../redux/features/buyStatus";
 import { use } from "react";
 import { store } from "../redux/store";
 
-export const FooterCartCountSection = () => {
+export const FooterCartCountSection = ({ timerPause, timerReset }) => {
   const [buyFunction, buyingData] = useBuyProductsMutation();
   const storeData = useSelector(selectAuthorization);
   const cart = useSelector(selectCart);
@@ -38,7 +38,8 @@ export const FooterCartCountSection = () => {
     if (
       totalSum === 0 ||
       buyStatus.status === "fetching" ||
-      buyStatus.status === "loading"
+      buyStatus.status === "loading" ||
+      buyStatus.status === 'error'
     ) {
       setButtonDisabled(true);
     } else setButtonDisabled(false);
@@ -62,6 +63,7 @@ export const FooterCartCountSection = () => {
   }, [buyingData]);
 
   const handleBuy = async (prods) => {
+    timerPause();
     const dateTime = moment().format("YYYY-MM-DD HH:mm:ss:SSSS");
     const withDateProds = prods.cartProducts.map((p) => {
       return { ...p, dateTime };
@@ -77,11 +79,13 @@ export const FooterCartCountSection = () => {
       const result = await buyFunction(modifiedCart).unwrap(); // Unwrap to handle success or error
       if (result) dispatch(setReciept(result));
       console.log("buyFunction result", result);
+      timerReset()
     } catch (error) {
+      timerReset();
       if (error.data?.errorDescription) {
         console.log("ERROR", error.data.errorDescription);
       } else {
-        console.log("An unexpected error occurred during purchase.");
+        console.log("An unexpected error occurred during purchase.", error);
       }
     }
   };
@@ -101,7 +105,7 @@ export const FooterCartCountSection = () => {
         <Link
           to={"/products"}
           className={`footer-counter-btn footer-counter-outlined-btn ${
-            buttonDisabled ? "disabled-btn" : ''
+            buttonDisabled ? "disabled-btn" : ""
           }`}
         >
           Повернутися до покупок

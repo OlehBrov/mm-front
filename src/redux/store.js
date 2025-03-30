@@ -12,6 +12,7 @@ import recieptReducer from "./features/recieptSlice";
 import buyStatusReducer from "./features/buyStatus";
 import terminalStateReducer from "./features/terminalSlice";
 import merchantReducer from "./features/merchantsSlice";
+import notifyReducer from "./features/notifySlice"
 
 import { storeApi } from "../api/storeApi";
 import {
@@ -50,6 +51,7 @@ export const store = configureStore({
     buyStatus: buyStatusReducer,
     terminalState: terminalStateReducer,
     merchant: merchantReducer,
+    notify: notifyReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

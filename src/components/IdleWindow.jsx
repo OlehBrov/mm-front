@@ -3,23 +3,53 @@ import ReactDOM from "react-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
-import { useSelector } from "react-redux";
-import { selectFilter } from "../redux/selectors/selectors";
+import { useDispatch, useSelector } from "react-redux";
 import {
+  selectBuyStatus,
+  selectFilter,
+  selectNotify,
+} from "../redux/selectors/selectors";
+import {
+  useCancelBuyProductsMutation,
   useGetAllProductsQuery,
   useGetStoreSaleProductsQuery,
 } from "../api/storeApi";
 import { ProductCard } from "./ProductCard";
 import QRCode from "react-qr-code";
+import { clearBuyStatus } from "../redux/features/buyStatus";
+import { clearCart } from "../redux/features/cartSlice";
 
-export const IdleWindow = ({ isOpen, onClose }) => {
-
+export const IdleWindow = ({ onClose }) => {
+  const { isIdleOpen } = useSelector(selectNotify);
   const { isLoading, isSuccess, isError, data, error } =
     useGetStoreSaleProductsQuery();
+  
+    const [cancelFunction, cancelData] = useCancelBuyProductsMutation();
+  const buyStatus = useSelector(selectBuyStatus);
+const dispatch = useDispatch()
+
+
   useEffect(() => {
-  console.log("IdleWindow data", data);
-}, [data])
-  if (!isOpen) {
+    console.log("IdleWindow isIdleOpen", isIdleOpen);
+  }, [isIdleOpen]);
+  useEffect(() => {
+    console.log("IdleWindow data", data);
+  }, [data]);
+  useEffect(() => {
+    console.log("buyStatus in IdleWindow", buyStatus);
+    if (buyStatus === "loading") {
+      console.log("cancelFunction in IdleWindow");
+      cancelFunction();
+    }
+  }, [buyStatus]);
+
+  useEffect(() => {
+    if (isIdleOpen) {
+      dispatch(clearBuyStatus());
+      dispatch(clearCart());
+    }
+  }, [isIdleOpen]);
+  if (!isIdleOpen) {
     return null; // Do not render anything if the modal is closed
   }
   const handleCloseButton = (e) => {
@@ -38,7 +68,11 @@ export const IdleWindow = ({ isOpen, onClose }) => {
           <div className="idle-circle idle-circle-3" />
           <div className="light-shadow" />
         </div>
-        <div className={`portal-content ${!data.products.length ? 'no-slider' : ''}`}>
+        <div
+          className={`portal-content ${
+            !data.products.length ? "no-slider" : ""
+          }`}
+        >
           {!data.products.length && ( // shoud be  !data.products.length
             <div className="no-sale-idle-logo-wrapper">
               <p className="screen-saver-logo">
@@ -84,7 +118,7 @@ export const IdleWindow = ({ isOpen, onClose }) => {
               className="idle-close-button"
               onClick={(e) => handleCloseButton(e)}
             >
-              До магазину
+              Дивіться, що є!
             </button>
           </div>
         </div>

@@ -14,6 +14,8 @@ const { promptBeforeIdle } = useSelector(selectNotify);
   const clearCartHandler = (e) => {
     e.preventDefault();
     dispatch(clearCart());
+    const dummy = document.getElementById("barcode-dummy");
+    dummy?.focus(); 
   };
   useEffect(() => {
     if (totalSum > 0 && promptBeforeIdle === 0) {

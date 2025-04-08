@@ -10,7 +10,7 @@ import {
   selectCartTotalSum,
   selectFilter,
   selectNotify,
-selectTerminalState,
+  selectTerminalState,
 } from "../redux/selectors/selectors";
 import { addToCart, clearCart } from "../redux/features/cartSlice";
 import { io } from "socket.io-client";
@@ -37,7 +37,10 @@ import {
 import { NoProduct } from "../components/NoProduct";
 import { setTerminalState } from "../redux/features/terminalSlice";
 import { setMerchantsData } from "../redux/features/merchantsSlice";
-import { clearBuyStatus, setPaymentCount } from "../redux/features/buyStatus.js";
+import {
+  clearBuyStatus,
+  setPaymentCount,
+} from "../redux/features/buyStatus.js";
 import { AddProductConfirm } from "../components/AddProductConfirm.jsx";
 import {
   setShowAddProductsConfirm,
@@ -120,8 +123,6 @@ export const Root = () => {
 
   let barcode = "";
 
-
-
   const singleProduct = useGetSingleProductQuery(
     { barcode: searchBarcode },
     {
@@ -131,18 +132,44 @@ export const Root = () => {
   );
 
   const [cancelFunction, cancelData] = useCancelBuyProductsMutation();
-  useEffect(() => {
-    console.log("singleProduct", singleProduct);
-  }, [singleProduct]);
+  const { getRemainingTime, start, reset, pause, resume } = useIdleTimer({
+    timeout: timeout,
+    promptBeforeIdle: promptBeforeIdle,
+    events: idleEvent,
+    onPresenceChange: (presence) => {
+      console.log("presence", presence);
+    },
+    onPrompt: () => {
+      console.log("🔔 onPrompt fired");
+
+      dispatch(setIsNotifyOpen(true));
+    },
+    onIdle: () => {
+      console.log("💤 onIdle triggered");
+      dispatch(clearCart());
+      dispatch(clearBuyStatus());
+      dispatch(setIsNotifyOpen(false));
+      dispatch(setIsIdleOpen(true));
+      navigate("/products");
+      pause(); // stop further timer activity
+    },
+    onActive: () => {
+      console.log("🟢 onActive");
+      dispatch(setIsIdleOpen(false));
+      dispatch(setIsNotifyOpen(false));
+      resume();
+      navigate("/products");
+    },
+    debounce: 500, // optional but helps avoid rapid firing
+  });
+
   const merchantData = useGetMerchantDataQuery();
   useEffect(() => {
     setNavigate(navigate);
   }, [navigate]);
 
   useEffect(() => {
-     console.log("merchantData", merchantData);
     if (merchantData.isSuccess) {
-     console.log("merchantData", merchantData);
       dispatch(setMerchantsData(merchantData.data));
     }
   }, [merchantData]);
@@ -158,7 +185,6 @@ export const Root = () => {
   }, [currentFilter.category, location]);
 
   useEffect(() => {
-    console.log('root buyStatus', buyStatus)
     if (
       totalPrice === 0 ||
       buyStatus.status === "fetching" ||
@@ -170,7 +196,7 @@ export const Root = () => {
 
   useEffect(() => {
     const handleScreenStatus = () => {
-      console.log("handleScreenStatus listener");
+      console.log("handleScreenStatus", isIdleOpen);
       // Emit current idle status
       socket.emit("idle-status", { isIdleOpen });
 
@@ -202,7 +228,6 @@ export const Root = () => {
   }, [merchantData]);
 
   const handleKeyPress = (event) => {
-    console.log("event", event);
     if (event.key === "Enter") {
       barCodeHandler(barcode);
 
@@ -224,19 +249,20 @@ export const Root = () => {
     };
   }, []);
 
-
   const handleIdleClose = () => {
     console.log("handleIdleClose invoked");
+    reset();
     dispatch(setIsIdleOpen(false));
     setIdleEvent(events);
     dispatch(clearBuyStatus());
     navigate("/products");
   };
-
+  useEffect(() => {
+    console.log("searchBarcode", searchBarcode);
+  }, [searchBarcode]);
 
   const barCodeHandler = (code) => {
     if (isIdleOpen) {
-      console.log("isIdleOpen in barCodeHandler", isIdleOpen);
       handleIdleClose();
     }
     const latestIsIdleOpen = store.getState().notify.isIdleOpen;
@@ -245,7 +271,7 @@ export const Root = () => {
     if (latestIsIdleOpen) dispatch(setIsIdleOpen(false));
 
     setSearchBarcode(code);
-
+    document.getElementById("barcode-dummy")?.focus();
     setIdleEvent(events);
     // setSkip(false);
     barcode = "";
@@ -255,79 +281,62 @@ export const Root = () => {
     if (singleProduct?.isFetching) return;
     if (singleProduct?.error) {
       dispatch(setNoProdError(true));
-
+      setSearchBarcode(null);
       setTimeout(() => {
         dispatch(setNoProdError(false));
-        setSearchBarcode(null);
       }, 2000);
     }
     if (singleProduct?.isSuccess && singleProduct?.status === "fulfilled") {
+      const productCanBeAdded = checkIfScannedProductToAdd(
+        singleProduct.currentData.product
+      );
+
+      if (!productCanBeAdded) {
+        dispatch(
+          setShowAddProductsConfirm({
+            show: true,
+            product: singleProduct.currentData.product,
+            isSuccess: false,
+            message: "закінчились",
+          })
+        );
+        setSearchBarcode(null);
+        setTimeout(() => {
+          console.log("close confirm");
+          dispatch(
+            setShowAddProductsConfirm({
+              show: false,
+              product: null,
+              isSuccess: false,
+              message: "",
+            })
+          );
+        }, 1000);
+
+        return;
+      }
       dispatch(
         setShowAddProductsConfirm({
           show: true,
           product: singleProduct.currentData.product,
+          isSuccess: true,
+          message: "додано",
         })
       );
+
+      addScannedProductToCart(singleProduct.currentData.product);
+      setSearchBarcode(null);
       setTimeout(() => {
+        console.log("close confirm");
         dispatch(
           setShowAddProductsConfirm({
             show: false,
             product: null,
+            isSuccess: false,
+            message: "",
           })
         );
       }, 1000);
-      let discount = 0;
-      let priceDecrement = 0;
-      let newPrice = 0;
-      let hasLowerPrice = false;
-      const regularPrice = parseFloat(
-        singleProduct.currentData.product.product_price
-      ).toFixed(2);
-
-      if (
-        singleProduct.currentData.product.sale_id === 1 ||
-        singleProduct.currentData.product.sale_id === 2
-      ) {
-        const daysLeft = calculateDaysLeft(singleProduct.currentData.product);
-        if (daysLeft <= 3) {
-          discount = calculateDiscount(
-            singleProduct.currentData.product,
-            daysLeft
-          );
-        }
-      } else if (
-        [3, 4, 6].includes(singleProduct.currentData.product.sale_id)
-      ) {
-        discount = calculateDiscount(singleProduct.currentData.product);
-      }
-
-      if (discount > 0) {
-        const calculatedNewPrice = calculateNewPrice(
-          singleProduct.currentData.product,
-          discount
-        );
-
-        priceDecrement = (regularPrice - calculatedNewPrice).toFixed(2);
-      }
-
-      dispatch(
-        addToCart({
-          product: {
-            ...singleProduct.currentData.product,
-            inCartQuantity: 1,
-            priceDecrement,
-            priceAfterDiscount: newPrice,
-            hasLowerPrice,
-            merchant,
-            discountValue: discount,
-          },
-          taxData: {
-            useVATbyDefault: merchantData.useVATbyDefault,
-            isSingleMerchant: merchantData.isSingleMerchant,
-          },
-        })
-      );
-      setSearchBarcode(null);
     }
 
     // Reset searchBarcode for future scans
@@ -335,58 +344,77 @@ export const Root = () => {
     setSearchBarcode(null);
   }, [singleProduct]);
 
-  // const onIdle = () => {
-  //   console.log("onIdle invoked");
-  //   if (isNotifyOpen) {
-  //     dispatch(setIsIdleOpen(true)); // Show IdleWindow after NotifyWindow times out
-  //     dispatch(clearCart()); // Clear cart if going to Idle
-  //     dispatch(setIsNotifyOpen(false));
-  //   } else {
-  //     dispatch(setIsIdleOpen(true));
-  //   }
-  //   setIdleEvent("keydown");
-  // };
-  // const onActive = () => {
-  //   console.log("onActive invoked");
-  //   dispatch(setIsNotifyOpen(false));
-  //   dispatch(setIsIdleOpen(false));
-  //   navigate("/products");
-  //   setIdleEvent(events);
-  // };
-  const { getRemainingTime, start, reset, pause, resume } = useIdleTimer({
-    
-    timeout: timeout,
-    promptBeforeIdle: promptBeforeIdle,
-    events: idleEvent,
-    onPresenceChange: (presence) => {
-      console.log('presence', presence)
-    },
-    onPrompt: () => {
-      console.log("🔔 onPrompt fired");
+  const addScannedProductToCart = (scannedProduct) => {
+    let discount = 0;
+    let priceDecrement = 0;
+    let newPrice = 0;
+    let hasLowerPrice = false;
+    const regularPrice = parseFloat(scannedProduct.product_price).toFixed(2);
 
-        dispatch(setIsNotifyOpen(true));
-     
-    },
-    onIdle: () => {
-      console.log("💤 onIdle triggered");
-      dispatch(clearCart());
-      dispatch(clearBuyStatus());
-      dispatch(setIsNotifyOpen(false));
-      dispatch(setIsIdleOpen(true));
-      navigate("/products");
-      pause(); // stop further timer activity
-    },
-    onActive: () => {
-      console.log("🟢 onActive");
-      dispatch(setIsIdleOpen(false));
-      dispatch(setIsNotifyOpen(false));
-      resume();
-      navigate("/products");
-    },
-    debounce: 500, // optional but helps avoid rapid firing
-  });
+    if (scannedProduct.sale_id === 1 || scannedProduct.sale_id === 2) {
+      const daysLeft = calculateDaysLeft(scannedProduct);
+      if (daysLeft <= 3) {
+        discount = calculateDiscount(scannedProduct, daysLeft);
+      }
+    } else if ([3, 4, 6].includes(scannedProduct.sale_id)) {
+      discount = calculateDiscount(scannedProduct);
+    }
+
+    if (discount > 0) {
+      const calculatedNewPrice = calculateNewPrice(scannedProduct, discount);
+
+      priceDecrement = (regularPrice - calculatedNewPrice).toFixed(2);
+    }
+
+    dispatch(
+      addToCart({
+        product: {
+          ...scannedProduct,
+          inCartQuantity: 1,
+          priceDecrement,
+          priceAfterDiscount: newPrice,
+          hasLowerPrice,
+          merchant,
+          discountValue: discount,
+        },
+        taxData: {
+          useVATbyDefault: merchantData.useVATbyDefault,
+          isSingleMerchant: merchantData.isSingleMerchant,
+        },
+      })
+    );
+  };
+
+  const checkIfScannedProductToAdd = (scannedProduct) => {
+    if (cartProducts.length === 0) return true;
+    const inCartProduct = cartProducts.some(
+      (product) => product.barcode === scannedProduct.barcode
+    );
+
+    if (!inCartProduct) return true;
+    const alreadyInCartProduct = cartProducts.find(
+      (product) => product.barcode === scannedProduct.barcode
+    );
+
+    if (
+      Number(alreadyInCartProduct.inCartQuantity) <
+      Number(scannedProduct.product_left)
+    ) {
+      return true;
+    } else return false;
+  };
+ 
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("⌛ Remaining time:", getRemainingTime());
+    }, 1000); // every second
+
+    return () => clearInterval(interval);
+  }, []);
   const handleNewUser = () => {
     console.log("handleNewUser invoked");
+    reset();
     dispatch(clearCart());
     dispatch(setIsNotifyOpen(false));
     cancelFunction();
@@ -401,9 +429,9 @@ export const Root = () => {
     setIdleEvent(events);
   };
 
-
   const handeNotifyClose = () => {
     console.log("handeNotifyClose invoked");
+    reset();
     dispatch(setIsNotifyOpen(false));
     setIdleEvent(events);
   };
@@ -424,7 +452,7 @@ export const Root = () => {
     cancelFunction();
     clearCartHandler();
     dispatch(setIsIdleOpen(true));
-  }
+  };
   return (
     // <IdleTimerProvider
     //   timeout={timeout}
@@ -459,6 +487,12 @@ export const Root = () => {
         </div>
       </header>
       <div className="container">
+        <input
+          id="barcode-dummy"
+          style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
+          autoFocus
+        />
+
         {terminalStatus.status === "offline" && <NoTerminalCover />}
         <NoProduct />
         <AddProductConfirm />
@@ -474,13 +508,10 @@ export const Root = () => {
           promptBeforeIdle={promptBeforeIdle}
           timeout={timeout}
         />
-        {buyStatus.status === "error" && <BuyError/>}
+        {buyStatus.status === "error" && <BuyError />}
         <Outlet />
       </div>
-      <Footer
-        timerReset={reset}
-        timerPause={pause}
-      />
+      <Footer timerReset={reset} timerPause={pause} />
     </div>
     // </IdleTimerProvider>
   );

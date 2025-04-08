@@ -1,6 +1,6 @@
 .cart-container {
   width: 100%;
-  padding: 0 20px;
+  // padding: 0 20px;
   overflow: hidden;
 }
 
@@ -44,6 +44,7 @@
 }
 .cartlist-wrapper {
   height: 100%;
+  padding: 0 20px;
 }
 .cart-list {
   padding: 0 90px 0 0;
@@ -98,7 +99,7 @@
 .cart-item-total {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
 }
 
 .cart-product-text {

@@ -113,7 +113,9 @@ export const ProductCard = ({
   const handleProductClick = (e) => {
     e.preventDefault();
     if (productQtyAvailable > 0) {
-      dispatch(setShowAddProductsConfirm({ show: true, product }));
+      dispatch(
+        setShowAddProductsConfirm({ show: true, product, isSuccess: true })
+      );
       setTimeout(() => {
         dispatch(setShowAddProductsConfirm({ show: false, product: null }));
       }, 1000);

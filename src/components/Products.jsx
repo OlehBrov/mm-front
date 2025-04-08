@@ -52,7 +52,7 @@ export const Products = () => {
     });
 
   useEffect(() => {
-    console.log("data", data);
+    console.log("useGetAllProductsQuery data", data);
   }, [data]);
   const transformData = (data) => {
     return data.reduce((acc, item) => {

@@ -1,11 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-
 export const showAddConfirmSlice = createSlice({
   name: "showAddConfirm",
   initialState: {
     show: false,
-    product: null
+    product: null,
+    isSuccess: false,
+    message: "",
   },
   reducers: {
     setShowAddProductsConfirm: (state, action) => {
